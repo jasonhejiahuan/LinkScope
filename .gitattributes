@@ -1,0 +1,15 @@
+* text=auto
+
+*.swift text diff=swift
+*.pbxproj text
+*.entitlements text
+*.strings text
+*.json text
+*.md text
+*.sh text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary

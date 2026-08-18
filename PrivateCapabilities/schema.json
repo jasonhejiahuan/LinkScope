@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc.jasonstu.linkscope.private-capabilities.v1",
+  "title": "LinkScope Private Capability Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "macOSMajorVersion", "validationStatus", "capabilities"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "macOSMajorVersion": { "type": "integer" },
+    "validationStatus": { "enum": ["notTested", "partial", "validated"] },
+    "testedBuilds": { "type": "array", "items": { "type": "string" } },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "framework", "class", "selector", "expectedTypeEncoding",
+          "invocationAdapter", "readOnly", "validated", "testedBuilds",
+          "architectures", "returnedValueFormat", "semanticConfidence"
+        ],
+        "properties": {
+          "framework": { "type": "string" },
+          "class": { "type": "string" },
+          "selector": { "type": "string" },
+          "expectedTypeEncoding": { "type": "string" },
+          "invocationAdapter": { "type": "string" },
+          "readOnly": { "const": true },
+          "validated": { "type": "boolean" },
+          "testedBuilds": { "type": "array", "items": { "type": "string" } },
+          "architectures": {
+            "type": "array",
+            "items": { "enum": ["arm64", "x86_64"] }
+          },
+          "returnedValueFormat": { "type": "string" },
+          "semanticConfidence": { "enum": ["unknown", "low", "medium", "high"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

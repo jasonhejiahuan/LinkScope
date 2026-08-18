@@ -1,0 +1,9 @@
+{
+  "$schema": "./schema.json",
+  "schemaVersion": 1,
+  "macOSMajorVersion": 26,
+  "validationStatus": "notTested",
+  "testedBuilds": [],
+  "capabilities": []
+}
+
