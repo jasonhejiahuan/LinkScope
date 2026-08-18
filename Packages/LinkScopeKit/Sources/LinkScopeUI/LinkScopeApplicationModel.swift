@@ -81,7 +81,11 @@ public final class LinkScopeApplicationModel {
                 )
             } catch {
                 persistenceError = error.localizedDescription
+#if DEBUG
                 Self.logger.error("History restore failed: \(error.localizedDescription, privacy: .public)")
+#else
+                Self.logger.error("History restore failed")
+#endif
             }
         }
 
@@ -114,7 +118,11 @@ public final class LinkScopeApplicationModel {
                 kind: .snapshotCaptured,
                 message: "Snapshot captured: \(archive.name)"
             ))
+#if DEBUG
             Self.logger.info("Snapshot captured: \(archive.id.uuidString, privacy: .public)")
+#else
+            Self.logger.info("Snapshot captured")
+#endif
         } catch {
             persistenceError = error.localizedDescription
         }
@@ -163,7 +171,11 @@ public final class LinkScopeApplicationModel {
                 timeline: archive.timeline
             )
         }
+#if DEBUG
         Self.logger.info("Snapshot imported: \(archive.id.uuidString, privacy: .public)")
+#else
+        Self.logger.info("Snapshot imported")
+#endif
     }
 
     public func makeArchive(name: String) -> SnapshotArchive {
