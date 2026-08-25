@@ -3,7 +3,7 @@
 Every user-visible update advances both the marketing version and build number
 for the Full and Lite targets.
 
-## 1.3.0 (6) — 2026-08-20
+## 1.4.0 (9) — 2026-08-25
 
 ### Added
 

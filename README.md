@@ -1,6 +1,6 @@
 # LinkScope
 
-Current development version: **0.1.3 (4)**. See [CHANGELOG.md](CHANGELOG.md).
+Current development version: **1.4.0 (9)**. See [CHANGELOG.md](CHANGELOG.md).
 
 LinkScope is a native macOS wireless-accessory inspector for people who want to
 see what the system exposes without letting the inspector take over their Mac.

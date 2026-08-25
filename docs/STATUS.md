@@ -1,6 +1,6 @@
 # Implementation status
 
-Last verified: 2026-08-18 on the current Apple-silicon development Mac with
+Last verified: 2026-08-25 on the current Apple-silicon development Mac with
 Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 
 ## Milestone status
@@ -18,9 +18,9 @@ Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 ## Verification evidence
 
 - Version ownership is project-level. Both application targets currently
-  resolve to marketing version 1.2.0 and build 5 without target overrides.
+  resolve to marketing version 1.4.0 and build 9 without target overrides.
 - Fresh Full and Lite Debug build-for-testing actions succeed. Their generated
-  Info.plists contain the expected bundle identifiers and version 1.2.0 (5).
+  Info.plists contain the expected bundle identifiers and version 1.4.0 (9).
 - Both generated Debug bundles pass strict deep code-signature verification and
   carry hardened-runtime signatures from the installed Apple Development
   identity. Lite carries App Sandbox, Bluetooth, and user-selected-file
@@ -39,7 +39,7 @@ Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
   test targets. Direct `swift test` execution remains blocked in the current
   managed workspace because SwiftPM's manifest sandbox cannot be applied.
 - Both `LinkScope` and `LinkScope Lite` Debug schemes build as native `.app`
-  bundles at version 0.1.3 build 4 with the local shared Swift package.
+  bundles at version 1.4.0 build 9 with the local shared Swift package.
 - Both bundles launch through `script/build_and_run.sh --verify`.
 - The Lite bundle has its distinct bundle ID and build-time sandbox/Bluetooth/file
   entitlements. The unsigned local verification build does not claim App Store
