@@ -71,7 +71,7 @@ private func makeResolvedObservation() -> ResolvedObservation {
 }
 
 @Test func diagnosticRunGapRuleAndSessionQueryRoundTrip() async throws {
-    let (database, _) = try makeDatabase()
+    let (database, url) = try makeDatabase()
     // The database intentionally stores Codable dates at millisecond precision.
     // Keep round-trip fixtures on that boundary so equality tests the payload
     // rather than sub-millisecond precision that is not part of the format.
@@ -105,7 +105,7 @@ private func makeResolvedObservation() -> ResolvedObservation {
         sessionID: run.id
     )
     let resolved = ResolvedObservation(observation: observation, identity: original.identity)
-    let gap = DiagnosticGap(
+    var gap = DiagnosticGap(
         sessionID: run.id,
         startedAt: fixtureDate.addingTimeInterval(1),
         reason: .systemSleep
@@ -115,18 +115,40 @@ private func makeResolvedObservation() -> ResolvedObservation {
         sourceID: source.id,
         predicate: .numericBelow(-80)
     )
+    let olderTrigger = RuleTrigger(
+        ruleID: rule.id,
+        triggeredAt: fixtureDate.addingTimeInterval(3),
+        summary: "Weak signal: -90"
+    )
+    let latestTrigger = RuleTrigger(
+        ruleID: rule.id,
+        observationID: resolved.id,
+        triggeredAt: fixtureDate.addingTimeInterval(9),
+        summary: "Weak signal: -91"
+    )
 
     try await database.saveDiagnosticRun(run)
     try await database.persist(resolved)
     try await database.saveDiagnosticGap(gap)
+    gap.endedAt = fixtureDate.addingTimeInterval(8)
+    try await database.saveDiagnosticGap(gap)
     try await database.saveRule(rule)
+    try await database.saveRuleTrigger(olderTrigger)
+    try await database.saveRuleTrigger(latestTrigger)
 
     #expect(try await database.diagnosticRuns() == [run])
     #expect(try await database.diagnosticGaps(sessionID: run.id) == [gap])
     #expect(try await database.rules() == [rule])
+    #expect(try await database.ruleTriggers(ruleID: rule.id) == [latestTrigger, olderTrigger])
+    #expect(try await database.latestRuleTriggerDates()[rule.id] == latestTrigger.triggeredAt)
     #expect(try await database.observations(
         matching: ObservationQuery(sessionID: run.id)
     ) == [resolved])
+
+    let keys = try DatabaseKeyMaterial(masterKeyData: Data(repeating: 0xA5, count: 32))
+    let reopened = try ObservationDatabase(url: url, keyMaterial: keys)
+    #expect(try await reopened.diagnosticGaps(sessionID: run.id) == [gap])
+    #expect(try await reopened.latestRuleTriggerDates()[rule.id] == latestTrigger.triggeredAt)
 }
 
 @Test func snapshotArchiveRoundTripsEveryAvailability() throws {

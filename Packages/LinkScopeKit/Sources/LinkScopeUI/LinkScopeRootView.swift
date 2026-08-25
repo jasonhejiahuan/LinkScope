@@ -236,7 +236,6 @@ public struct LinkScopeRootView: View {
             ) {
                 permissionOnboardingCompleted = true
                 showingPermissions = false
-                Task { await model.start() }
             }
             .environment(\.linkScopeLanguage, language)
             .frame(width: 620)
@@ -245,12 +244,10 @@ public struct LinkScopeRootView: View {
         .task {
             await model.refreshPermissionStatuses()
             await Task.yield()
-            if !permissionOnboardingCompleted || model.permissionsNeedAttention {
+            if !permissionOnboardingCompleted {
                 showingPermissions = true
             }
-            if permissionOnboardingCompleted {
-                await model.start()
-            }
+            await model.start()
         }
         .onReceive(NSWorkspace.shared.notificationCenter.publisher(
             for: NSWorkspace.willSleepNotification

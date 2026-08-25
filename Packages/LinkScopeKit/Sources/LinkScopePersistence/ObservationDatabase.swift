@@ -460,6 +460,65 @@ public actor ObservationDatabase: ObservationSink {
         }
     }
 
+    public func ruleTriggers(
+        ruleID: UUID? = nil,
+        limit: Int = 500
+    ) throws -> [RuleTrigger] {
+        let sql: String
+        if ruleID == nil {
+            sql = """
+                SELECT encrypted_payload FROM rule_triggers
+                ORDER BY triggered_at DESC LIMIT ?;
+                """
+        } else {
+            sql = """
+                SELECT encrypted_payload FROM rule_triggers
+                WHERE rule_id = ? ORDER BY triggered_at DESC LIMIT ?;
+                """
+        }
+        return try withStatement(sql) { statement in
+            var bindingIndex: Int32 = 1
+            if let ruleID {
+                bind(ruleID.uuidString, at: bindingIndex, to: statement)
+                bindingIndex += 1
+            }
+            bind(Int64(max(1, min(limit, 100_000))), at: bindingIndex, to: statement)
+            var results: [RuleTrigger] = []
+            while sqlite3_step(statement) == SQLITE_ROW {
+                results.append(try decrypted(
+                    RuleTrigger.self,
+                    from: columnData(statement, index: 0)
+                ))
+            }
+            return results
+        }
+    }
+
+    public func latestRuleTriggerDates() throws -> [UUID: Date] {
+        let sql = """
+            SELECT candidate.encrypted_payload
+            FROM rule_triggers AS candidate
+            WHERE candidate.id = (
+                SELECT latest.id FROM rule_triggers AS latest
+                WHERE latest.rule_id = candidate.rule_id
+                ORDER BY latest.triggered_at DESC, latest.id DESC
+                LIMIT 1
+            )
+            ORDER BY candidate.rule_id;
+            """
+        return try withStatement(sql) { statement in
+            var results: [UUID: Date] = [:]
+            while sqlite3_step(statement) == SQLITE_ROW {
+                let trigger = try decrypted(
+                    RuleTrigger.self,
+                    from: columnData(statement, index: 0)
+                )
+                results[trigger.ruleID] = trigger.triggeredAt
+            }
+            return results
+        }
+    }
+
     public func schemaVersion() throws -> Int {
         try Self.schemaVersion(connection.handle)
     }

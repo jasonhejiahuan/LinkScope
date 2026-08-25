@@ -150,3 +150,159 @@ public struct ProviderSampleRequest: Sendable {
         self.sessionID = sessionID
     }
 }
+
+/// Pure scheduling decisions shared by the application model and tests.
+/// An event-only diagnostic intentionally has no polling interval.
+public enum DiagnosticSamplingScheduler: Sendable {
+    public static func periodicInterval(for policy: SamplingPolicy) -> TimeInterval? {
+        switch policy {
+        case .eventOnly:
+            return nil
+        case let .fixedInterval(seconds):
+            return max(2, seconds)
+        case let .adaptive(minimumSeconds, _):
+            return max(2, minimumSeconds)
+        }
+    }
+
+    public static func nextAdaptiveInterval(
+        current: TimeInterval,
+        minimumSeconds: TimeInterval,
+        maximumSeconds: TimeInterval,
+        sampleSucceeded: Bool
+    ) -> TimeInterval {
+        let minimum = max(2, minimumSeconds)
+        let maximum = max(minimum, maximumSeconds)
+        return sampleSucceeded ? minimum : min(maximum, max(minimum, current * 2))
+    }
+}
+
+public enum DiagnosticSourceCatalog: Sendable {
+    public static func sampleSources(
+        observations: [ResolvedObservation],
+        providers: [ProviderDescriptor]
+    ) -> [DiagnosticSource] {
+        return sources(observations: observations, providers: providers, sampleOnly: true)
+    }
+
+    public static func monitoringSources(
+        observations: [ResolvedObservation],
+        providers: [ProviderDescriptor]
+    ) -> [DiagnosticSource] {
+        return sources(observations: observations, providers: providers, sampleOnly: false)
+    }
+
+    private static func sources(
+        observations: [ResolvedObservation],
+        providers: [ProviderDescriptor],
+        sampleOnly: Bool
+    ) -> [DiagnosticSource] {
+        return observations.compactMap { resolved in
+            let observation = resolved.observation
+            let descriptor = providers.first(where: {
+                $0.id == observation.transportIdentity.providerID
+            })
+            let operation: ProviderOperation
+            if sampleOnly {
+                guard descriptor?.capabilities.contains(where: {
+                    $0.operation == .sample
+                        && $0.parameterPath == observation.parameterPath
+                }) == true else { return nil }
+                operation = .sample
+            } else {
+                operation = descriptor?.capabilities.first(where: {
+                    $0.parameterPath == observation.parameterPath
+                })?.operation ?? .observe
+            }
+            return DiagnosticSource(
+                id: WidgetSourceID(observationIdentity: resolved.observationIdentity),
+                accessoryID: resolved.identity.physicalAccessory.id,
+                transportID: resolved.identity.transportIdentity.id,
+                providerID: observation.transportIdentity.providerID,
+                parameterPath: observation.parameterPath,
+                displayName: "\(resolved.identity.physicalAccessory.displayName) · \(observation.parameterPath.rawValue)",
+                operation: operation
+            )
+        }
+        .reduce(into: [WidgetSourceID: DiagnosticSource]()) { $0[$1.id] = $1 }
+        .values
+        .sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
+    }
+}
+
+/// Side-effect-free rule semantics. Provider health is represented as an
+/// availability state; numeric predicates never match a provider status.
+public enum MonitoringRuleEvaluator: Sendable {
+    public static func matches(
+        _ predicate: RulePredicate,
+        observation: AccessoryObservation,
+        previous: AccessoryObservation?
+    ) -> Bool {
+        switch predicate {
+        case let .availability(code):
+            return observation.availability.code == code
+        case let .numericBelow(limit):
+            return numericValue(observation.value).map { $0 < limit } ?? false
+        case let .numericAbove(limit):
+            return numericValue(observation.value).map { $0 > limit } ?? false
+        case .changed:
+            guard let previous else { return false }
+            return previous.value != observation.value
+                || previous.availability != observation.availability
+        }
+    }
+
+    public static func matchesProviderStatus(
+        _ predicate: RulePredicate,
+        state: ProviderState,
+        previous: ProviderState?
+    ) -> Bool {
+        switch predicate {
+        case let .availability(code):
+            return providerAvailability(for: state) == code
+        case .numericBelow, .numericAbove:
+            return false
+        case .changed:
+            return previous.map { $0 != state } ?? false
+        }
+    }
+
+    public static func providerAvailability(for state: ProviderState) -> AvailabilityCode {
+        switch state {
+        case .running:
+            return .available
+        case .permissionDenied:
+            return .permissionDenied
+        case .unsupported:
+            return .unsupported
+        case .failed:
+            return .providerFailure
+        case .idle, .starting, .stopped:
+            return .notReported
+        }
+    }
+
+    public static func canTrigger(
+        minimumRepeatInterval: TimeInterval,
+        lastTriggeredAt: Date?,
+        now: Date
+    ) -> Bool {
+        guard let lastTriggeredAt else { return true }
+        return now.timeIntervalSince(lastTriggeredAt) >= max(60, minimumRepeatInterval)
+    }
+
+    private static func numericValue(_ value: RawValue?) -> Double? {
+        switch value {
+        case let .signedInt(value):
+            return Double(value)
+        case let .unsignedInt(value):
+            return Double(value)
+        case let .double(value):
+            return value
+        case let .decimal(value):
+            return Double(value)
+        default:
+            return nil
+        }
+    }
+}

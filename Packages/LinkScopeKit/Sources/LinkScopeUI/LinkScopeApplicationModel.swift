@@ -36,6 +36,8 @@ public final class LinkScopeApplicationModel {
     public private(set) var notificationPermissionState: LinkScopePermissionState = .unknown
 
     private let hub: ObservationHub
+    private let coreBluetoothProvider: CoreBluetoothProvider?
+    private let ioBluetoothProvider: IOBluetoothProvider?
     private var database: ObservationDatabase?
     private var didRestoreDatabase = false
     private var snapshotTask: Task<Void, Never>?
@@ -44,12 +46,18 @@ public final class LinkScopeApplicationModel {
     private var lastRuleTriggerDates: [UUID: Date] = [:]
     private var lastProviderStates: [ProviderID: ProviderState] = [:]
     private var sleepGap: DiagnosticGap?
+    private var openSourceGaps: [WidgetSourceID: DiagnosticGap] = [:]
+    private var isRequestingKeychainAccess = false
+    private var isRequestingBluetoothAccess = false
+    private var isRequestingNotificationAccess = false
     private static let logger = Logger(subsystem: "cc.jasonstu.linkscope", category: "application")
 
     public init(edition: LinkScopeEdition) {
         self.edition = edition
         let providers = PublicProviderFactory.makeProviders()
         self.providerDescriptors = providers.map(\.descriptor)
+        self.coreBluetoothProvider = providers.compactMap { $0 as? CoreBluetoothProvider }.first
+        self.ioBluetoothProvider = providers.compactMap { $0 as? IOBluetoothProvider }.first
         self.database = nil
         self.hub = ObservationHub(providers: providers, sink: InMemoryObservationSink())
     }
@@ -102,31 +110,37 @@ public final class LinkScopeApplicationModel {
     }
 
     public func refreshPermissionStatuses() async {
-        switch KeychainMasterKey.accessStatus(service: keychainService) {
-        case .available:
+        if database != nil {
             keychainPermissionState = .allowed
+        } else {
             await prepareStorageIfAlreadyAuthorized()
-        case .notConfigured:
-            keychainPermissionState = .notRequested
-        case .authorizationRequired:
-            keychainPermissionState = .denied
-        case .unavailable:
-            keychainPermissionState = .unavailable
         }
 
-        bluetoothPermissionState = switch CBManager.authorization {
-        case .allowedAlways: .allowed
-        case .notDetermined: .notRequested
-        case .denied, .restricted: .denied
-        @unknown default: .unavailable
+        let authorization = CBManager.authorization
+        bluetoothPermissionState = permissionState(for: authorization)
+        if isRunning, authorization != .notDetermined {
+            await coreBluetoothProvider?.start()
+            await ioBluetoothProvider?.start()
         }
 
         await refreshNotificationAuthorization()
     }
 
     public func requestKeychainAccess() async {
+        guard !isRequestingKeychainAccess else { return }
+        isRequestingKeychainAccess = true
+        keychainPermissionState = .unknown
+        defer { isRequestingKeychainAccess = false }
+
+        let service = keychainService
         do {
-            try await configurePersistence(allowAuthenticationUI: true)
+            let keyData = try await Task.detached(priority: .userInitiated) {
+                try KeychainMasterKey.authorizeAndMigrateLegacyKey(
+                    service: service,
+                    operationPrompt: "LinkScope needs its storage key to reopen saved history and diagnostics."
+                )
+            }.value
+            try await configurePersistence(masterKeyData: keyData)
             keychainPermissionState = .allowed
             persistenceError = nil
         } catch {
@@ -134,22 +148,30 @@ public final class LinkScopeApplicationModel {
                case let .keychain(status) = keyMaterialError,
                status == errSecUserCanceled {
                 keychainPermissionState = .notRequested
+                persistenceError = nil
             } else {
                 keychainPermissionState = .denied
+                persistenceError = error.localizedDescription
             }
-            persistenceError = error.localizedDescription
         }
     }
 
     public func requestBluetoothAccess() async {
+        guard !isRequestingBluetoothAccess else { return }
+        isRequestingBluetoothAccess = true
+        bluetoothPermissionState = .unknown
+        defer { isRequestingBluetoothAccess = false }
+
+        // start() is intentionally non-interactive: both Bluetooth providers
+        // refuse framework access while authorization is undetermined.
         await start()
-        try? await Task.sleep(for: .milliseconds(500))
-        bluetoothPermissionState = switch CBManager.authorization {
-        case .allowedAlways: .allowed
-        case .notDetermined: .notRequested
-        case .denied, .restricted: .denied
-        @unknown default: .unavailable
+        guard let coreBluetoothProvider else {
+            bluetoothPermissionState = .unavailable
+            return
         }
+        let authorization = await coreBluetoothProvider.requestAuthorization()
+        bluetoothPermissionState = permissionState(for: authorization)
+        await ioBluetoothProvider?.start()
     }
 
     public func refreshNotificationAuthorization() async {
@@ -165,6 +187,11 @@ public final class LinkScopeApplicationModel {
     }
 
     public func requestNotificationAuthorization() async {
+        guard !isRequestingNotificationAccess else { return }
+        isRequestingNotificationAccess = true
+        notificationPermissionState = .unknown
+        defer { isRequestingNotificationAccess = false }
+
         do {
             notificationsAuthorized = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .sound])
@@ -237,27 +264,19 @@ public final class LinkScopeApplicationModel {
     }
 
     public var diagnosticSources: [DiagnosticSource] {
-        snapshot.observations.compactMap { resolved in
-            let observation = resolved.observation
-            guard let descriptor = providerDescriptors.first(where: {
-                $0.id == observation.transportIdentity.providerID
-            }),
-            let capability = descriptor.capabilities.first(where: {
-                $0.operation == .sample && $0.parameterPath == observation.parameterPath
-            }) else { return nil }
-            return DiagnosticSource(
-                id: WidgetSourceID(observationIdentity: resolved.observationIdentity),
-                accessoryID: resolved.identity.physicalAccessory.id,
-                transportID: resolved.identity.transportIdentity.id,
-                providerID: descriptor.id,
-                parameterPath: observation.parameterPath,
-                displayName: "\(resolved.identity.physicalAccessory.displayName) · \(observation.parameterPath.rawValue)",
-                operation: capability.operation
-            )
-        }
-        .reduce(into: [WidgetSourceID: DiagnosticSource]()) { $0[$1.id] = $1 }
-        .values
-        .sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
+        DiagnosticSourceCatalog.sampleSources(
+            observations: snapshot.observations,
+            providers: providerDescriptors
+        )
+    }
+
+    /// Every currently observed parameter can be monitored, even when its
+    /// provider does not offer active sampling (for example, battery events).
+    public var monitoringSources: [DiagnosticSource] {
+        DiagnosticSourceCatalog.monitoringSources(
+            observations: snapshot.observations,
+            providers: providerDescriptors
+        )
     }
 
     public func startDiagnostic(
@@ -301,8 +320,15 @@ public final class LinkScopeApplicationModel {
         guard var run = activeDiagnostic else { return }
         diagnosticTask?.cancel()
         diagnosticTask = nil
+        let endedAt = Date.now
+        await closeAllSourceGaps(at: endedAt)
+        if var gap = sleepGap {
+            gap.endedAt = endedAt
+            sleepGap = nil
+            try? await database?.saveDiagnosticGap(gap)
+        }
         run.state = .completed
-        run.endedAt = .now
+        run.endedAt = endedAt
         run.endReason = reason
         activeDiagnostic = nil
         replaceDiagnostic(run)
@@ -317,6 +343,7 @@ public final class LinkScopeApplicationModel {
         guard let run = activeDiagnostic else { return }
         diagnosticTask?.cancel()
         diagnosticTask = nil
+        await closeAllSourceGaps(at: .now)
         let gap = DiagnosticGap(sessionID: run.id, reason: .systemSleep)
         sleepGap = gap
         try? await database?.saveDiagnosticGap(gap)
@@ -349,8 +376,21 @@ public final class LinkScopeApplicationModel {
 
     private func runDiagnostic(id: UUID) async {
         guard let run = activeDiagnostic, run.id == id else { return }
-        var interval = diagnosticInterval(for: run.samplingPolicy)
         let deadline = run.plannedDuration.map { (run.startedAt ?? .now).addingTimeInterval($0) }
+        guard var interval = DiagnosticSamplingScheduler.periodicInterval(
+            for: run.samplingPolicy
+        ) else {
+            guard let deadline else { return }
+            let remaining = max(0, deadline.timeIntervalSinceNow)
+            do {
+                try await Task.sleep(for: .seconds(remaining))
+            } catch {
+                return
+            }
+            guard activeDiagnostic?.id == id else { return }
+            await stopDiagnostic(reason: .durationReached)
+            return
+        }
         while !Task.isCancelled {
             if let deadline, Date.now >= deadline {
                 await stopDiagnostic(reason: .durationReached)
@@ -358,9 +398,12 @@ public final class LinkScopeApplicationModel {
             }
             let succeeded = await sampleActiveDiagnostic()
             if case let .adaptive(minimumSeconds, maximumSeconds) = run.samplingPolicy {
-                interval = succeeded
-                    ? max(2, minimumSeconds)
-                    : min(max(maximumSeconds, minimumSeconds), interval * 2)
+                interval = DiagnosticSamplingScheduler.nextAdaptiveInterval(
+                    current: interval,
+                    minimumSeconds: minimumSeconds,
+                    maximumSeconds: maximumSeconds,
+                    sampleSucceeded: succeeded
+                )
             }
             do {
                 try await Task.sleep(for: .seconds(interval))
@@ -375,9 +418,30 @@ public final class LinkScopeApplicationModel {
         let transports = snapshot.transports.values.flatMap { $0 }
         var allSucceeded = true
         for source in run.sources {
+            guard !Task.isCancelled, activeDiagnostic?.id == run.id else {
+                return false
+            }
+            guard snapshot.providerStatuses.first(where: {
+                $0.providerID == source.providerID
+            })?.state == .running else {
+                if await transitionGap(
+                    for: run,
+                    source: source,
+                    reason: .providerUnavailable
+                ) {
+                    run.gapCount += 1
+                }
+                allSucceeded = false
+                continue
+            }
             guard let transport = transports.first(where: { $0.id == source.transportID }) else {
-                await recordGap(for: run, source: source, reason: .providerUnavailable)
-                run.gapCount += 1
+                if await transitionGap(
+                    for: run,
+                    source: source,
+                    reason: .providerUnavailable
+                ) {
+                    run.gapCount += 1
+                }
                 allSucceeded = false
                 continue
             }
@@ -389,13 +453,21 @@ public final class LinkScopeApplicationModel {
                     sessionID: run.id
                 )
             )
+            guard !Task.isCancelled, activeDiagnostic?.id == run.id else {
+                return false
+            }
             if sampled {
+                _ = await transitionGap(for: run, source: source, reason: nil)
                 run.sampleCount += 1
             } else {
-                await recordGap(for: run, source: source, reason: .samplingFailed)
-                run.gapCount += 1
+                if await transitionGap(for: run, source: source, reason: .samplingFailed) {
+                    run.gapCount += 1
+                }
                 allSucceeded = false
             }
+        }
+        guard !Task.isCancelled, activeDiagnostic?.id == run.id else {
+            return false
         }
         activeDiagnostic = run
         replaceDiagnostic(run)
@@ -403,23 +475,42 @@ public final class LinkScopeApplicationModel {
         return allSucceeded
     }
 
-    private func recordGap(
+    /// Returns true only when a new gap is opened. Repeated failures preserve
+    /// one record until recovery instead of adding a row on every sample tick.
+    private func transitionGap(
         for run: DiagnosticRun,
         source: DiagnosticSource,
-        reason: DiagnosticGapReason
-    ) async {
-        let gap = DiagnosticGap(sessionID: run.id, sourceID: source.id, reason: reason)
+        reason: DiagnosticGapReason?,
+        at date: Date = .now
+    ) async -> Bool {
+        if var existing = openSourceGaps[source.id] {
+            if existing.sessionID == run.id,
+               let reason,
+               existing.reason == reason {
+                return false
+            }
+            existing.endedAt = date
+            openSourceGaps.removeValue(forKey: source.id)
+            try? await database?.saveDiagnosticGap(existing)
+        }
+        guard let reason else { return false }
+        let gap = DiagnosticGap(
+            sessionID: run.id,
+            sourceID: source.id,
+            startedAt: date,
+            reason: reason
+        )
+        openSourceGaps[source.id] = gap
         try? await database?.saveDiagnosticGap(gap)
+        return true
     }
 
-    private func diagnosticInterval(for policy: SamplingPolicy) -> TimeInterval {
-        switch policy {
-        case .eventOnly:
-            return 60
-        case let .fixedInterval(seconds):
-            return max(2, seconds)
-        case let .adaptive(minimumSeconds, _):
-            return max(2, minimumSeconds)
+    private func closeAllSourceGaps(at date: Date) async {
+        let gaps = Array(openSourceGaps.values)
+        openSourceGaps.removeAll(keepingCapacity: true)
+        for var gap in gaps {
+            gap.endedAt = date
+            try? await database?.saveDiagnosticGap(gap)
         }
     }
 
@@ -453,7 +544,11 @@ public final class LinkScopeApplicationModel {
             let previous = lastRuleObservations[sourceID]
             lastRuleObservations[sourceID] = observation
             for rule in rules where rule.isEnabled && rule.sourceID == sourceID {
-                guard ruleMatches(rule, observation: observation, previous: previous),
+                guard MonitoringRuleEvaluator.matches(
+                    rule.predicate,
+                    observation: observation.observation,
+                    previous: previous?.observation
+                ),
                       canTrigger(rule) else { continue }
                 await trigger(
                     rule,
@@ -464,49 +559,27 @@ public final class LinkScopeApplicationModel {
         }
 
         for status in snapshot.providerStatuses {
-            defer { lastProviderStates[status.providerID] = status.state }
-            guard lastProviderStates[status.providerID] != nil,
-                  lastProviderStates[status.providerID] != status.state,
-                  status.state != .running else { continue }
+            let previous = lastProviderStates[status.providerID]
+            lastProviderStates[status.providerID] = status.state
+            guard previous != nil, previous != status.state else { continue }
             let sourceID = WidgetSourceID(rawValue: "provider:\(status.providerID.rawValue)")
-            for rule in rules where rule.isEnabled && rule.sourceID == sourceID && canTrigger(rule) {
+            for rule in rules where rule.isEnabled && rule.sourceID == sourceID {
+                guard MonitoringRuleEvaluator.matchesProviderStatus(
+                    rule.predicate,
+                    state: status.state,
+                    previous: previous
+                ), canTrigger(rule) else { continue }
                 await trigger(rule, observation: nil, summary: "\(rule.name): \(status.state.rawValue)")
             }
         }
     }
 
-    private func ruleMatches(
-        _ rule: RuleDefinition,
-        observation: ResolvedObservation,
-        previous: ResolvedObservation?
-    ) -> Bool {
-        switch rule.predicate {
-        case let .availability(code):
-            return observation.observation.availability.code == code
-        case let .numericBelow(limit):
-            return numericValue(observation.observation.value).map { $0 < limit } ?? false
-        case let .numericAbove(limit):
-            return numericValue(observation.observation.value).map { $0 > limit } ?? false
-        case .changed:
-            guard let previous else { return false }
-            return previous.observation.value != observation.observation.value
-                || previous.observation.availability != observation.observation.availability
-        }
-    }
-
-    private func numericValue(_ value: RawValue?) -> Double? {
-        switch value {
-        case let .signedInt(value): Double(value)
-        case let .unsignedInt(value): Double(value)
-        case let .double(value): value
-        case let .decimal(value): Double(value)
-        default: nil
-        }
-    }
-
     private func canTrigger(_ rule: RuleDefinition) -> Bool {
-        guard let last = lastRuleTriggerDates[rule.id] else { return true }
-        return Date.now.timeIntervalSince(last) >= max(60, rule.minimumRepeatInterval)
+        MonitoringRuleEvaluator.canTrigger(
+            minimumRepeatInterval: rule.minimumRepeatInterval,
+            lastTriggeredAt: lastRuleTriggerDates[rule.id],
+            now: .now
+        )
     }
 
     private func trigger(
@@ -514,11 +587,13 @@ public final class LinkScopeApplicationModel {
         observation: ResolvedObservation?,
         summary: String
     ) async {
-        lastRuleTriggerDates[rule.id] = .now
+        let triggeredAt = Date.now
+        lastRuleTriggerDates[rule.id] = triggeredAt
         let trigger = RuleTrigger(
             ruleID: rule.id,
             sessionID: observation?.observation.sessionID,
             observationID: observation?.id,
+            triggeredAt: triggeredAt,
             summary: summary
         )
         try? await database?.saveRuleTrigger(trigger)
@@ -618,38 +693,51 @@ public final class LinkScopeApplicationModel {
     }
 
     private func prepareStorageIfAlreadyAuthorized() async {
-        guard database == nil,
-              KeychainMasterKey.accessStatus(service: keychainService) == .available else {
+        guard database == nil else {
+            keychainPermissionState = .allowed
             return
         }
-        do {
-            try await configurePersistence(allowAuthenticationUI: false)
-            keychainPermissionState = .allowed
-            persistenceError = nil
-        } catch {
+
+        switch KeychainMasterKey.readDataProtectionKeyNonInteractive(service: keychainService) {
+        case let .available(keyData):
+            do {
+                try await configurePersistence(masterKeyData: keyData)
+                keychainPermissionState = .allowed
+                persistenceError = nil
+            } catch {
+                keychainPermissionState = .unavailable
+                persistenceError = error.localizedDescription
+            }
+        case .notConfigured:
+            keychainPermissionState = .notRequested
+        case .authorizationRequired:
+            keychainPermissionState = .denied
+        case let .unavailable(status):
             keychainPermissionState = .unavailable
-            persistenceError = error.localizedDescription
+            persistenceError = KeyMaterialError.keychain(status).localizedDescription
         }
     }
 
-    private func configurePersistence(allowAuthenticationUI: Bool) async throws {
+    private func configurePersistence(masterKeyData: Data) async throws {
         guard database == nil else {
             await restoreDatabaseIfNeeded()
             return
         }
-        let keyData = try KeychainMasterKey.loadOrCreate(
-            service: keychainService,
-            allowAuthenticationUI: allowAuthenticationUI,
-            operationPrompt: allowAuthenticationUI
-                ? "LinkScope needs its storage key to reopen saved history and diagnostics."
-                : nil
-        )
-        let keys = try DatabaseKeyMaterial(masterKeyData: keyData)
+        let keys = try DatabaseKeyMaterial(masterKeyData: masterKeyData)
         let databaseURL = try Self.databaseURL(edition: edition)
         let database = try ObservationDatabase(url: databaseURL, keyMaterial: keys)
         self.database = database
         await hub.setSink(database)
         await restoreDatabaseIfNeeded()
+    }
+
+    private func permissionState(for authorization: CBManagerAuthorization) -> LinkScopePermissionState {
+        switch authorization {
+        case .allowedAlways: .allowed
+        case .notDetermined: .notRequested
+        case .denied, .restricted: .denied
+        @unknown default: .unavailable
+        }
     }
 
     private func restoreDatabaseIfNeeded() async {
@@ -662,10 +750,20 @@ public final class LinkScopeApplicationModel {
             async let snapshots = database.snapshots(limit: 100)
             async let runs = database.diagnosticRuns()
             async let rules = database.rules()
-            let restored = try await (observations, statuses, timeline, snapshots, runs, rules)
+            async let triggerDates = database.latestRuleTriggerDates()
+            let restored = try await (
+                observations,
+                statuses,
+                timeline,
+                snapshots,
+                runs,
+                rules,
+                triggerDates
+            )
             savedSnapshots = restored.3
             diagnosticRuns = restored.4
             self.rules = restored.5
+            lastRuleTriggerDates = restored.6
             try await recoverInterruptedDiagnostics()
             await hub.seed(
                 observations: restored.0,

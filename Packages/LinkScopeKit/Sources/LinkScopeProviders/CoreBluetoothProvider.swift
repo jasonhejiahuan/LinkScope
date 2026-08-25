@@ -15,6 +15,7 @@ public final class CoreBluetoothProvider: NSObject, @unchecked Sendable, Accesso
 
     private let emitter = ProviderEventEmitter()
     private var central: CBCentralManager?
+    private var authorizationContinuations: [CheckedContinuation<CBManagerAuthorization, Never>] = []
 
     public override init() {
         super.init()
@@ -25,9 +26,36 @@ public final class CoreBluetoothProvider: NSObject, @unchecked Sendable, Accesso
     }
 
     public func start() async {
+        switch CBManager.authorization {
+        case .notDetermined:
+            emitter.yield(.status(ProviderStatus(
+                providerID: descriptor.id,
+                state: .idle,
+                message: "Bluetooth access has not been requested"
+            )))
+            return
+        case .denied, .restricted:
+            emitter.yield(.status(ProviderStatus(
+                providerID: descriptor.id,
+                state: .permissionDenied,
+                message: "Bluetooth permission denied"
+            )))
+            return
+        case .allowedAlways:
+            break
+        @unknown default:
+            emitter.yield(.status(ProviderStatus(
+                providerID: descriptor.id,
+                state: .failed,
+                message: "Unknown Bluetooth authorization state"
+            )))
+            return
+        }
+
+        let alreadyStarted = await MainActor.run { self.central != nil }
+        guard !alreadyStarted else { return }
         emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .starting)))
         await MainActor.run {
-            guard self.central == nil else { return }
             self.central = CBCentralManager(
                 delegate: self,
                 queue: .main,
@@ -36,16 +64,53 @@ public final class CoreBluetoothProvider: NSObject, @unchecked Sendable, Accesso
         }
     }
 
+    /// Creates the CoreBluetooth manager only in response to an explicit user
+    /// action, then waits for the authorization decision delivered to the
+    /// manager delegate. Ordinary provider startup never enters this path.
+    public func requestAuthorization() async -> CBManagerAuthorization {
+        let current = CBManager.authorization
+        guard current == .notDetermined else {
+            await start()
+            return current
+        }
+
+        emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .starting)))
+        return await withCheckedContinuation { continuation in
+            Task { @MainActor in
+                self.authorizationContinuations.append(continuation)
+                if self.central == nil {
+                    self.central = CBCentralManager(
+                        delegate: self,
+                        queue: .main,
+                        options: [CBCentralManagerOptionShowPowerAlertKey: false]
+                    )
+                }
+            }
+        }
+    }
+
     public func stop() async {
-        await MainActor.run {
+        let pending = await MainActor.run {
             self.central?.stopScan()
             self.central = nil
+            let pending = self.authorizationContinuations
+            self.authorizationContinuations.removeAll()
+            return pending
         }
+        let authorization = CBManager.authorization
+        pending.forEach { $0.resume(returning: authorization) }
         emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .stopped)))
         emitter.finish()
     }
 
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        let authorization = CBManager.authorization
+        if authorization != .notDetermined {
+            let pending = authorizationContinuations
+            authorizationContinuations.removeAll()
+            pending.forEach { $0.resume(returning: authorization) }
+        }
+
         let transport = TransportIdentity(
             providerID: descriptor.id,
             kind: .system,

@@ -312,6 +312,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = LinkScope;
 				CODE_SIGN_ENTITLEMENTS = Apps/LinkScope/LinkScope.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = WBU2AFY549;
@@ -369,7 +370,6 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope Lite reads Bluetooth accessory state and parameters without controlling the accessory.";
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope.lite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LINKSCOPE_LITE";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -385,7 +385,6 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = LinkScope;
 				CODE_SIGN_ENTITLEMENTS = Apps/LinkScopeLite/LinkScopeLite.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = WBU2AFY549;
@@ -396,7 +395,6 @@
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope Lite reads Bluetooth accessory state and parameters without controlling the accessory.";
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope.lite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LINKSCOPE_LITE";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -413,7 +411,7 @@
 				AA0000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A90000000000000000000002 /* Build configuration list for PBXNativeTarget "LinkScope" */ = {
 			isa = XCConfigurationList;
@@ -422,7 +420,7 @@
 				AA0000000000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LinkScope Lite" */ = {
 			isa = XCConfigurationList;
@@ -431,7 +429,7 @@
 				AA0000000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 

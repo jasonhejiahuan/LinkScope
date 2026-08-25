@@ -8,7 +8,6 @@ public struct PermissionManagementView: View {
     public let onComplete: () -> Void
 
     @Environment(\.linkScopeLanguage) private var language
-    @State private var isApplying = false
 
     public init(
         model: LinkScopeApplicationModel,
@@ -88,20 +87,9 @@ public struct PermissionManagementView: View {
                 HStack {
                     Spacer()
                     Button(L10n.string("permissions.continue", language: language)) {
-                        isApplying = true
-                        Task {
-                            if model.keychainPermissionState != .allowed {
-                                await model.requestKeychainAccess()
-                            }
-                            if model.bluetoothPermissionState == .notRequested {
-                                await model.requestBluetoothAccess()
-                            }
-                            isApplying = false
-                            onComplete()
-                        }
+                        onComplete()
                     }
                     .keyboardShortcut(.defaultAction)
-                    .disabled(isApplying)
                 }
             }
         }
@@ -111,9 +99,9 @@ public struct PermissionManagementView: View {
 
     private var keychainActionTitle: String? {
         switch model.keychainPermissionState {
-        case .allowed: nil
-        case .unknown, .notRequested:
-            L10n.string("permissions.allow", language: language)
+        case .unknown, .allowed: nil
+        case .notRequested:
+            L10n.string("permissions.enable", language: language)
         case .denied, .unavailable:
             L10n.string("permissions.tryAgain", language: language)
         }
@@ -121,8 +109,8 @@ public struct PermissionManagementView: View {
 
     private var bluetoothActionTitle: String? {
         switch model.bluetoothPermissionState {
-        case .allowed: nil
-        case .unknown, .notRequested:
+        case .unknown, .allowed: nil
+        case .notRequested:
             L10n.string("permissions.allow", language: language)
         case .denied, .unavailable:
             L10n.string("permissions.openSettings", language: language)
@@ -131,8 +119,8 @@ public struct PermissionManagementView: View {
 
     private var notificationActionTitle: String? {
         switch model.notificationPermissionState {
-        case .allowed: nil
-        case .unknown, .notRequested:
+        case .unknown, .allowed: nil
+        case .notRequested:
             L10n.string("permissions.allow", language: language)
         case .denied, .unavailable:
             L10n.string("permissions.openSettings", language: language)
