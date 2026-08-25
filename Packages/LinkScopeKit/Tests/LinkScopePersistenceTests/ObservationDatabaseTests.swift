@@ -70,6 +70,65 @@ private func makeResolvedObservation() -> ResolvedObservation {
     #expect(try await reopened.schemaVersion() == ObservationDatabase.currentSchemaVersion)
 }
 
+@Test func diagnosticRunGapRuleAndSessionQueryRoundTrip() async throws {
+    let (database, _) = try makeDatabase()
+    // The database intentionally stores Codable dates at millisecond precision.
+    // Keep round-trip fixtures on that boundary so equality tests the payload
+    // rather than sub-millisecond precision that is not part of the format.
+    let fixtureDate = Date(timeIntervalSince1970: 1_700_000_000.125)
+    let original = makeResolvedObservation()
+    let source = DiagnosticSource(
+        id: WidgetSourceID(observationIdentity: original.observationIdentity),
+        accessoryID: original.identity.physicalAccessory.id,
+        transportID: original.identity.transportIdentity.id,
+        providerID: original.observation.transportIdentity.providerID,
+        parameterPath: original.observation.parameterPath,
+        displayName: "Fixture RSSI",
+        operation: .sample
+    )
+    let run = DiagnosticRun(
+        name: "Shipping Diagnostic",
+        purpose: "Verify a real session",
+        createdAt: fixtureDate,
+        startedAt: fixtureDate,
+        plannedDuration: 300,
+        state: .running,
+        sources: [source],
+        samplingPolicy: .fixedInterval(seconds: 5)
+    )
+    let observation = AccessoryObservation(
+        timestamp: fixtureDate.addingTimeInterval(2),
+        transportIdentity: original.observation.transportIdentity,
+        parameterPath: original.observation.parameterPath,
+        value: .signedInt(-42),
+        availability: .available,
+        sessionID: run.id
+    )
+    let resolved = ResolvedObservation(observation: observation, identity: original.identity)
+    let gap = DiagnosticGap(
+        sessionID: run.id,
+        startedAt: fixtureDate.addingTimeInterval(1),
+        reason: .systemSleep
+    )
+    let rule = RuleDefinition(
+        name: "Weak signal",
+        sourceID: source.id,
+        predicate: .numericBelow(-80)
+    )
+
+    try await database.saveDiagnosticRun(run)
+    try await database.persist(resolved)
+    try await database.saveDiagnosticGap(gap)
+    try await database.saveRule(rule)
+
+    #expect(try await database.diagnosticRuns() == [run])
+    #expect(try await database.diagnosticGaps(sessionID: run.id) == [gap])
+    #expect(try await database.rules() == [rule])
+    #expect(try await database.observations(
+        matching: ObservationQuery(sessionID: run.id)
+    ) == [resolved])
+}
+
 @Test func snapshotArchiveRoundTripsEveryAvailability() throws {
     let fixtureDate = Date(timeIntervalSince1970: 1_700_000_000.125)
     let physical = PhysicalAccessoryIdentity(displayName: "Fixture", createdAt: fixtureDate)

@@ -1,4 +1,5 @@
 import AppKit
+import AppIntents
 import LinkScopeCore
 import LinkScopeUI
 import SwiftUI
@@ -6,7 +7,14 @@ import SwiftUI
 @main
 struct LinkScopeApp: App {
     @NSApplicationDelegateAdaptor(LinkScopeAppDelegate.self) private var appDelegate
-    @State private var model = LinkScopeApplicationModel(edition: .full)
+    @State private var model: LinkScopeApplicationModel
+
+    init() {
+        let model = LinkScopeApplicationModel(edition: .full)
+        _model = State(initialValue: model)
+        AppDependencyManager.shared.add(dependency: model)
+        LinkScopeShortcuts.updateAppShortcutParameters()
+    }
 
     var body: some Scene {
         WindowGroup("LinkScope", id: "main") {
@@ -22,8 +30,7 @@ struct LinkScopeApp: App {
         }
 
         Settings {
-            LinkScopeSettingsView(edition: .full)
+            LinkScopeSettingsView(model: model)
         }
     }
 }
-

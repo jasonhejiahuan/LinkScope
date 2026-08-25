@@ -26,9 +26,10 @@ and fully customizable dashboards.
 | LinkScope | `cc.jasonstu.linkscope` | Developer ID | Public providers now; isolated experimental providers in Milestone 3 |
 | LinkScope Lite | `cc.jasonstu.linkscope.lite` | Mac App Store | Public, sandbox-compatible providers only |
 
-The current public release boundary is Milestone 0 plus Milestone 1. Later
-features are deferred, not cancelled; their durable identities and data models
-start in the foundation so their return does not require a storage rewrite.
+The current public release boundary includes Milestones 0, 1, and 2:
+the public inspector plus explicit diagnostic sessions, bounded sampling,
+historical analysis, notification rules, and Shortcuts automation. Milestones
+3 and 4 remain deferred and do not form production dependencies.
 
 See [the implementation plan](docs/IMPLEMENTATION_PLAN.md) and
 [acceptance matrix](docs/ACCEPTANCE.md). The evidence-backed boundary between

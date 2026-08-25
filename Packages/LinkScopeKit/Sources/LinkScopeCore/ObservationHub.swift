@@ -32,7 +32,7 @@ public struct HubSnapshot: Sendable {
 
 public actor ObservationHub {
     private let providers: [any AccessoryProvider]
-    private let sink: (any ObservationSink)?
+    private var sink: (any ObservationSink)?
     private let resolver: IdentityResolver
     private var providerTasks: [Task<Void, Never>] = []
     private var continuations: [UUID: AsyncStream<HubSnapshot>.Continuation] = [:]
@@ -97,8 +97,26 @@ public actor ObservationHub {
         makeSnapshot()
     }
 
+    public func setSink(_ sink: (any ObservationSink)?) {
+        self.sink = sink
+    }
+
     public func record(_ event: TimelineEvent) async {
         await consume(.timeline(event))
+    }
+
+    @discardableResult
+    public func sample(
+        providerID: ProviderID,
+        request: ProviderSampleRequest
+    ) async -> Bool {
+        guard started,
+              let provider = providers.first(where: { $0.descriptor.id == providerID }),
+              let observation = await provider.sample(request) else {
+            return false
+        }
+        await consume(.observation(observation))
+        return true
     }
 
     public func seed(

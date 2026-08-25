@@ -13,6 +13,10 @@
 | Localization | English and Simplified Chinese switch from Settings without data loss |
 | Energy | Idle providers use callbacks; no recurring scanning timer exists |
 | Read-only | Static review and protocol tests find no general write/control surface |
+| Diagnostics | Sampling requires an explicit session, stops deterministically, and records sleep/provider gaps |
+| Rules | Availability is preserved; notifications require authorization and enforce a repeat interval |
+| Automation | App Intents expose start/stop/status/snapshot without adding idle polling |
+| Retention | Unlimited is the default; deletion shows an exact preview and requires confirmation |
 
 ## Reference-machine performance gate
 
@@ -49,4 +53,3 @@ recurring polling while idle.
 
 Policy and mock tests prove software behavior only; they are not labelled as
 proof of every physical accessory or production distribution path.
-

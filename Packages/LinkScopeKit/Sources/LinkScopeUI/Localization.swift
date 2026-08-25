@@ -31,6 +31,12 @@ extension EnvironmentValues {
 }
 
 enum L10n {
+    static func string(_ key: String) -> String {
+        let code = UserDefaults.standard.string(forKey: "LinkScope.uiLanguage")
+        let language = code.flatMap(AppLanguage.init(rawValue:)) ?? .defaultLanguage
+        return string(key, language: language)
+    }
+
     static func string(_ key: String, language: AppLanguage) -> String {
         guard let path = Bundle.module.path(forResource: language.rawValue, ofType: "lproj"),
               let bundle = Bundle(path: path) else {
@@ -60,4 +66,3 @@ struct LText: View {
         Text(L10n.string(key, language: language))
     }
 }
-

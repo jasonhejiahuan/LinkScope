@@ -1,0 +1,46 @@
+{
+  "fill" : "system-light",
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "04-scope-ring.svg",
+          "name" : "04-scope-ring"
+        },
+        {
+          "image-name" : "03-nodes.svg",
+          "name" : "03-nodes"
+        },
+        {
+          "image-name" : "02-long-orbit.svg",
+          "name" : "02-long-orbit"
+        },
+        {
+          "image-name" : "01-left-orbit.svg",
+          "name" : "01-left-orbit"
+        }
+      ],
+      "position" : {
+        "scale" : 1.65,
+        "translation-in-points" : [
+          0,
+          0
+        ]
+      },
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.3
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
