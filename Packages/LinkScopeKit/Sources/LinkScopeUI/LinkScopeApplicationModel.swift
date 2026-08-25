@@ -29,6 +29,11 @@ public final class LinkScopeApplicationModel {
     public private(set) var diagnosticRuns: [DiagnosticRun] = []
     public private(set) var activeDiagnostic: DiagnosticRun?
     public private(set) var rules: [RuleDefinition] = []
+    public private(set) var dashboards: [DashboardDocument] = []
+    public private(set) var dashboardHistoryRevision = 0
+    public private(set) var dashboardLiveSeries: [
+        WidgetSourceID: [DashboardTimeSeriesPoint]
+    ] = [:]
     public private(set) var notificationsAuthorized = false
     public private(set) var retentionCandidateCount = 0
     public private(set) var keychainPermissionState: LinkScopePermissionState = .unknown
@@ -42,6 +47,11 @@ public final class LinkScopeApplicationModel {
     private var didRestoreDatabase = false
     private var snapshotTask: Task<Void, Never>?
     private var diagnosticTask: Task<Void, Never>?
+    private var dashboardPersistenceTask: Task<Void, Never>?
+    private var dashboardHistoryCache: [DashboardHistoryRequestKey: DashboardHistoryCacheEntry] = [:]
+    private var dashboardHistoryInFlight: [
+        DashboardHistoryRequestKey: Task<[ResolvedObservation], Error>
+    ] = [:]
     private var lastRuleObservations: [WidgetSourceID: ResolvedObservation] = [:]
     private var lastRuleTriggerDates: [UUID: Date] = [:]
     private var lastProviderStates: [ProviderID: ProviderState] = [:]
@@ -93,6 +103,7 @@ public final class LinkScopeApplicationModel {
             for await value in stream {
                 guard !Task.isCancelled else { break }
                 self?.snapshot = value
+                self?.recordDashboardLiveSeries(from: value.observations)
                 await self?.evaluateRules(in: value)
             }
         }
@@ -226,6 +237,78 @@ public final class LinkScopeApplicationModel {
         }
     }
 
+    /// Applies dashboard edits immediately for a responsive canvas, then
+    /// serializes encrypted persistence in edit order. Memory-only sessions
+    /// retain the same behavior without prompting for Keychain access.
+    public func applyDashboard(_ dashboard: DashboardDocument) {
+        let dashboard = dashboard.schemaVersion <= DashboardDocument.currentSchemaVersion
+            ? DashboardLayoutEngine.normalized(dashboard)
+            : dashboard
+        replaceDashboard(dashboard)
+        enqueueDashboardPersistence { database in
+            _ = try await database.saveDashboard(dashboard)
+        }
+    }
+
+    public func deleteDashboard(id: UUID) {
+        dashboards.removeAll { $0.id == id }
+        enqueueDashboardPersistence { database in
+            _ = try await database.deleteDashboard(id: id)
+        }
+    }
+
+    /// Fetches one exact stable widget source through the indexed persistence
+    /// query. The view performs numeric decimation off the main actor.
+    public func dashboardHistory(
+        for sourceID: WidgetSourceID,
+        limit: Int = 5_000
+    ) async throws -> [ResolvedObservation] {
+        let boundedLimit = max(1, min(limit, 20_000))
+        let requestKey = DashboardHistoryRequestKey(
+            sourceID: sourceID,
+            limit: boundedLimit,
+            revision: dashboardHistoryRevision
+        )
+        if let cached = dashboardHistoryCache[requestKey],
+           Date.now.timeIntervalSince(cached.loadedAt) < 15 {
+            return cached.observations
+        }
+        if let inFlight = dashboardHistoryInFlight[requestKey] {
+            return try await inFlight.value
+        }
+
+        let database = self.database
+        let inMemoryHistory = snapshot.history
+        let query = ObservationQuery(widgetSourceID: sourceID, limit: boundedLimit)
+        let task: Task<[ResolvedObservation], Error> = Task.detached(priority: .userInitiated) {
+            if let database,
+               let query {
+                return try await database.observations(matching: query)
+            }
+            return inMemoryHistory.filter {
+                WidgetSourceID(observationIdentity: $0.observationIdentity) == sourceID
+            }
+            .sorted { $0.observation.timestamp > $1.observation.timestamp }
+            .prefix(boundedLimit)
+            .map { $0 }
+        }
+        dashboardHistoryInFlight[requestKey] = task
+        do {
+            let observations = try await task.value
+            dashboardHistoryInFlight.removeValue(forKey: requestKey)
+            if requestKey.revision == dashboardHistoryRevision {
+                dashboardHistoryCache[requestKey] = DashboardHistoryCacheEntry(
+                    loadedAt: .now,
+                    observations: observations
+                )
+            }
+            return observations
+        } catch {
+            dashboardHistoryInFlight.removeValue(forKey: requestKey)
+            throw error
+        }
+    }
+
     public func previewRetention(days: Int) async {
         guard days > 0, let database else {
             retentionCandidateCount = 0
@@ -249,18 +332,27 @@ public final class LinkScopeApplicationModel {
             let statuses = try await database.providerStatuses()
             let timeline = try await database.timeline(limit: 1_000)
             await hub.seed(observations: observations, statuses: statuses, timeline: timeline)
+            invalidateDashboardHistory()
         } catch {
             persistenceError = error.localizedDescription
         }
     }
 
     public func stop() async {
+        await flushForTermination()
         guard isRunning else { return }
         snapshotTask?.cancel()
         snapshotTask = nil
         await stopDiagnostic(reason: .applicationTerminated)
         await hub.stop()
         isRunning = false
+    }
+
+    /// Called by the shared AppDelegate's terminate-later path so the final
+    /// queued layout edit reaches SQLite before either edition replies to
+    /// macOS termination.
+    public func flushForTermination() async {
+        await dashboardPersistenceTask?.value
     }
 
     public var diagnosticSources: [DiagnosticSource] {
@@ -522,6 +614,61 @@ public final class LinkScopeApplicationModel {
         }
     }
 
+    private func replaceDashboard(_ dashboard: DashboardDocument) {
+        if let index = dashboards.firstIndex(where: { $0.id == dashboard.id }) {
+            dashboards[index] = dashboard
+        } else {
+            dashboards.append(dashboard)
+        }
+        dashboards.sort {
+            let comparison = $0.name.localizedCaseInsensitiveCompare($1.name)
+            if comparison != .orderedSame { return comparison == .orderedAscending }
+            if $0.name != $1.name { return $0.name < $1.name }
+            return $0.id.uuidString < $1.id.uuidString
+        }
+    }
+
+    private func recordDashboardLiveSeries(from observations: [ResolvedObservation]) {
+        let latestPoints = DashboardTimeSeriesDecimator.numericPoints(from: observations)
+        guard !latestPoints.isEmpty else { return }
+        var updatedSeries = dashboardLiveSeries
+        var didChange = false
+        for point in latestPoints {
+            var series = updatedSeries[point.sourceID, default: []]
+            guard !series.contains(where: { $0.observationID == point.observationID }) else {
+                continue
+            }
+            series.append(point)
+            series.sort {
+                if $0.timestamp != $1.timestamp { return $0.timestamp < $1.timestamp }
+                return $0.observationID.uuidString < $1.observationID.uuidString
+            }
+            if series.count > 120 {
+                series.removeFirst(series.count - 120)
+            }
+            updatedSeries[point.sourceID] = series
+            didChange = true
+        }
+        if didChange {
+            dashboardLiveSeries = updatedSeries
+        }
+    }
+
+    private func enqueueDashboardPersistence(
+        _ operation: @escaping @Sendable (ObservationDatabase) async throws -> Void
+    ) {
+        let previousTask = dashboardPersistenceTask
+        dashboardPersistenceTask = Task { [weak self] in
+            await previousTask?.value
+            guard let self, let database = self.database else { return }
+            do {
+                try await operation(database)
+            } catch {
+                self.persistenceError = error.localizedDescription
+            }
+        }
+    }
+
     private func recoverInterruptedDiagnostics() async throws {
         for var run in diagnosticRuns where run.state == .running || run.state == .stopping {
             run.state = .interrupted
@@ -662,6 +809,7 @@ public final class LinkScopeApplicationModel {
             let timeline = try await database.timeline(limit: 1_000)
             savedSnapshots = try await database.snapshots(limit: 100)
             await hub.seed(observations: observations, statuses: statuses, timeline: timeline)
+            invalidateDashboardHistory()
         } else {
             savedSnapshots.insert(archive, at: 0)
             await hub.seed(
@@ -669,6 +817,7 @@ public final class LinkScopeApplicationModel {
                 statuses: archive.providerStatuses,
                 timeline: archive.timeline
             )
+            invalidateDashboardHistory()
         }
 #if DEBUG
         Self.logger.info("Snapshot imported: \(archive.id.uuidString, privacy: .public)")
@@ -744,6 +893,9 @@ public final class LinkScopeApplicationModel {
         guard !didRestoreDatabase, let database else { return }
         do {
             try await database.removeDevelopmentFixtures()
+            for dashboard in dashboards {
+                _ = try await database.saveDashboard(dashboard)
+            }
             async let observations = database.observations(matching: ObservationQuery(limit: 5_000))
             async let statuses = database.providerStatuses()
             async let timeline = database.timeline(limit: 1_000)
@@ -751,6 +903,7 @@ public final class LinkScopeApplicationModel {
             async let runs = database.diagnosticRuns()
             async let rules = database.rules()
             async let triggerDates = database.latestRuleTriggerDates()
+            async let dashboards = database.dashboards()
             let restored = try await (
                 observations,
                 statuses,
@@ -758,18 +911,21 @@ public final class LinkScopeApplicationModel {
                 snapshots,
                 runs,
                 rules,
-                triggerDates
+                triggerDates,
+                dashboards
             )
             savedSnapshots = restored.3
             diagnosticRuns = restored.4
             self.rules = restored.5
             lastRuleTriggerDates = restored.6
+            self.dashboards = restored.7
             try await recoverInterruptedDiagnostics()
             await hub.seed(
                 observations: restored.0,
                 statuses: restored.1,
                 timeline: restored.2
             )
+            invalidateDashboardHistory()
             didRestoreDatabase = true
         } catch {
             persistenceError = error.localizedDescription
@@ -810,4 +966,22 @@ public final class LinkScopeApplicationModel {
             $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending
         }
     }
+
+    private func invalidateDashboardHistory() {
+        dashboardHistoryInFlight.values.forEach { $0.cancel() }
+        dashboardHistoryInFlight.removeAll(keepingCapacity: false)
+        dashboardHistoryCache.removeAll(keepingCapacity: false)
+        dashboardHistoryRevision &+= 1
+    }
+}
+
+private struct DashboardHistoryRequestKey: Hashable {
+    let sourceID: WidgetSourceID
+    let limit: Int
+    let revision: Int
+}
+
+private struct DashboardHistoryCacheEntry {
+    let loadedAt: Date
+    let observations: [ResolvedObservation]
 }

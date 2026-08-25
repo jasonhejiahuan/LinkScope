@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 private enum InspectorSelection: Hashable {
     case device(UUID)
+    case dashboard
     case providers
     case timeline
     case diagnostics
@@ -59,29 +60,14 @@ public struct LinkScopeRootView: View {
     public var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
-                if accessoryEntries.isEmpty {
-                    Section {
-                        ContentUnavailableView(
-                            L10n.string("sidebar.noDevices", language: language),
-                            systemImage: "dot.radiowaves.left.and.right"
-                        )
-                    } header: {
-                        LText("sidebar.devices")
-                    }
-                } else {
-                    ForEach(accessorySections) { section in
-                        Section {
-                            ForEach(section.entries) { entry in
-                                AccessorySidebarRow(entry: entry)
-                                    .tag(InspectorSelection.device(entry.id))
-                            }
-                        } header: {
-                            Text(sectionTitle(section))
-                        }
-                    }
-                }
-
                 Section {
+                    Label {
+                        LText("dashboard.title")
+                    } icon: {
+                        Image(systemName: "rectangle.3.group")
+                    }
+                    .tag(InspectorSelection.dashboard)
+
                     Label {
                         LText("sidebar.providers")
                     } icon: {
@@ -105,6 +91,29 @@ public struct LinkScopeRootView: View {
                 } header: {
                     LText("sidebar.system")
                 }
+
+                if accessoryEntries.isEmpty {
+                    Section {
+                        ContentUnavailableView(
+                            L10n.string("sidebar.noDevices", language: language),
+                            systemImage: "dot.radiowaves.left.and.right"
+                        )
+                    } header: {
+                        LText("sidebar.devices")
+                    }
+                } else {
+                    ForEach(accessorySections) { section in
+                        Section {
+                            ForEach(section.entries) { entry in
+                                AccessorySidebarRow(entry: entry)
+                                    .tag(InspectorSelection.device(entry.id))
+                            }
+                        } header: {
+                            Text(sectionTitle(section))
+                        }
+                    }
+                }
+
             }
             .listStyle(.sidebar)
             .searchable(text: $searchText, prompt: L10n.string("search.prompt", language: language))
@@ -274,6 +283,8 @@ public struct LinkScopeRootView: View {
             } else {
                 EmptyInspectorView()
             }
+        case .dashboard:
+            DashboardView(model: model)
         case .providers:
             ProviderStatusView(
                 descriptors: model.providerDescriptors,
