@@ -23,6 +23,7 @@ struct AccessoryListEntry: Identifiable {
     let accessory: PhysicalAccessoryIdentity
     let transports: [TransportIdentity]
     let summary: AccessoryConnectionSummary
+    let bluetoothClassOfDevice: UInt64?
 
     var id: UUID { accessory.id }
 }
@@ -49,6 +50,7 @@ enum AccessoryListPresentation {
             snapshot: snapshot,
             observedAfter: liveSessionStartedAt
         )
+        let bluetoothClasses = bluetoothClassesByAccessory(in: snapshot)
         return snapshot.accessories
             .filter {
                 searchText.isEmpty
@@ -62,7 +64,8 @@ enum AccessoryListPresentation {
                         state: .inactive,
                         protocols: [.unknown],
                         latestUpdate: nil
-                    )
+                    ),
+                    bluetoothClassOfDevice: bluetoothClasses[accessory.id]
                 )
             }
             .sorted(by: comparator(for: sortOrder))
@@ -97,6 +100,23 @@ enum AccessoryListPresentation {
                 ? []
                 : [AccessoryListSection(id: .all, entries: entries)]
         }
+    }
+
+    private static func bluetoothClassesByAccessory(
+        in snapshot: HubSnapshot
+    ) -> [UUID: UInt64] {
+        var values: [UUID: (timestamp: Date, value: UInt64)] = [:]
+        for resolved in snapshot.observations
+        where resolved.observation.parameterPath.rawValue == "bluetooth.classOfDevice" {
+            guard case let .unsignedInt(value) = resolved.observation.value else {
+                continue
+            }
+            let accessoryID = resolved.identity.physicalAccessory.id
+            if values[accessoryID].map({ $0.timestamp > resolved.observation.timestamp }) != true {
+                values[accessoryID] = (resolved.observation.timestamp, value)
+            }
+        }
+        return values.mapValues(\.value)
     }
 
     private static func comparator(

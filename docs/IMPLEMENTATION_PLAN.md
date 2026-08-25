@@ -14,7 +14,7 @@ Status values used throughout this plan:
 | --- | --- | --- | --- |
 | 0 | Foundation | Shared architecture and testable data foundation | Required now |
 | 1 | Public Inspector | Useful Full/Lite v1 built only on public APIs | Required now |
-| 2 | Diagnostics and Monitoring | Sessions, sampling, rules, alerts, automation | Deferred, not cancelled |
+| 2 | Diagnostics and Monitoring | Sessions, sampling, rules, alerts, automation | Implemented initial release |
 | 3 | Experimental Private Providers | Isolated, runtime-discovered Full-only surfaces | Deferred, not cancelled; probes allowed now |
 | 4 | Advanced Dashboard System | Arbitrary dashboards and a twelve-column grid | Deferred, not cancelled; interaction probes allowed now |
 
@@ -70,4 +70,3 @@ must be evidence or development-only code—not a production dependency.
 - [Provider architecture](architecture/PROVIDERS.md)
 - [Distribution policy](architecture/DISTRIBUTION.md)
 - [Acceptance matrix](ACCEPTANCE.md)
-

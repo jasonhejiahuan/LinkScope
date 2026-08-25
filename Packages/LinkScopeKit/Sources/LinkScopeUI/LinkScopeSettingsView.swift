@@ -3,13 +3,15 @@ import ServiceManagement
 import SwiftUI
 
 public struct LinkScopeSettingsView: View {
-    public let edition: LinkScopeEdition
+    public let model: LinkScopeApplicationModel
     @AppStorage("LinkScope.uiLanguage") private var languageCode = AppLanguage.defaultLanguage.rawValue
     @State private var loginItemEnabled = SMAppService.mainApp.status == .enabled
     @State private var loginItemError: String?
+    @AppStorage("LinkScope.historyRetentionDays") private var retentionDays = 0
+    @State private var confirmingRetention = false
 
-    public init(edition: LinkScopeEdition) {
-        self.edition = edition
+    public init(model: LinkScopeApplicationModel) {
+        self.model = model
     }
 
     private var language: AppLanguage {
@@ -42,25 +44,57 @@ public struct LinkScopeSettingsView: View {
 
             Form {
                 LabeledContent(L10n.string("settings.edition", language: language)) {
-                    Text(edition == .full ? "LinkScope" : "LinkScope Lite")
+                    Text(model.edition == .full ? "LinkScope" : "LinkScope Lite")
                 }
                 LabeledContent(L10n.string("settings.version", language: language)) {
                     Text(versionDescription)
                 }
                 LabeledContent(L10n.string("settings.history", language: language)) {
-                    Text(L10n.string("settings.history.unlimited", language: language))
+                    Picker("", selection: $retentionDays) {
+                        Text(L10n.string("settings.history.unlimited", language: language)).tag(0)
+                        Text(L10n.string("settings.history.30days", language: language)).tag(30)
+                        Text(L10n.string("settings.history.90days", language: language)).tag(90)
+                        Text(L10n.string("settings.history.1year", language: language)).tag(365)
+                    }
+                    .labelsHidden()
                 }
-                Text(L10n.string("settings.readOnly", language: language))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                if retentionDays > 0 {
+                    Button(L10n.string("settings.history.preview", language: language)) {
+                        Task {
+                            await model.previewRetention(days: retentionDays)
+                            confirmingRetention = model.retentionCandidateCount > 0
+                        }
+                    }
+                }
             }
             .formStyle(.grouped)
             .tabItem {
-                Label(L10n.string("settings.privacy", language: language), systemImage: "lock.shield")
+                Label(L10n.string("settings.storage", language: language), systemImage: "internaldrive")
+            }
+
+            PermissionManagementView(model: model)
+            .tabItem {
+                Label(L10n.string("settings.permissions", language: language), systemImage: "checkmark.shield")
             }
         }
         .environment(\.linkScopeLanguage, language)
-        .frame(width: 520, height: 320)
+        .frame(width: 620, height: 440)
+        .task { await model.refreshPermissionStatuses() }
+        .alert(
+            L10n.string("settings.history.confirmTitle", language: language),
+            isPresented: $confirmingRetention
+        ) {
+            Button(L10n.string("common.cancel", language: language), role: .cancel) {}
+            Button(L10n.string("settings.history.delete", language: language), role: .destructive) {
+                Task { await model.applyRetention(days: retentionDays) }
+            }
+        } message: {
+            Text(L10n.formatted(
+                "settings.history.confirmMessage",
+                language: language,
+                model.retentionCandidateCount
+            ))
+        }
     }
 
     private func updateLoginItem(_ enabled: Bool) {

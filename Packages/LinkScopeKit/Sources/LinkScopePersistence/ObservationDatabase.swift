@@ -58,7 +58,7 @@ public enum ObservationDatabaseError: Error, LocalizedError {
 }
 
 public actor ObservationDatabase: ObservationSink {
-    public static let currentSchemaVersion = 3
+    public static let currentSchemaVersion = 4
 
     private let connection: SQLiteConnection
     private let keys: DatabaseKeyMaterial
@@ -332,12 +332,160 @@ public actor ObservationDatabase: ObservationSink {
         }
     }
 
+    public func saveDiagnosticRun(_ run: DiagnosticRun) throws {
+        let sql = """
+            INSERT OR REPLACE INTO diagnostic_sessions(
+                id, created_at, ended_at, schema_version, encrypted_payload
+            ) VALUES(?, ?, ?, ?, ?);
+            """
+        let payload = try encrypted(run)
+        try withStatement(sql) { statement in
+            bind(run.id.uuidString, at: 1, to: statement)
+            bind(run.createdAt.timeIntervalSince1970, at: 2, to: statement)
+            if let endedAt = run.endedAt {
+                bind(endedAt.timeIntervalSince1970, at: 3, to: statement)
+            } else {
+                bind(nil as String?, at: 3, to: statement)
+            }
+            bind(Int64(run.schemaVersion), at: 4, to: statement)
+            bind(payload, at: 5, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+    }
+
+    public func diagnosticRuns(limit: Int = 500) throws -> [DiagnosticRun] {
+        let sql = """
+            SELECT encrypted_payload FROM diagnostic_sessions
+            ORDER BY created_at DESC LIMIT ?;
+            """
+        return try withStatement(sql) { statement in
+            bind(Int64(max(1, min(limit, 5_000))), at: 1, to: statement)
+            var results: [DiagnosticRun] = []
+            while sqlite3_step(statement) == SQLITE_ROW {
+                let data = try columnData(statement, index: 0)
+                if let run = try? decrypted(DiagnosticRun.self, from: data) {
+                    results.append(run)
+                }
+            }
+            return results
+        }
+    }
+
+    public func saveDiagnosticGap(_ gap: DiagnosticGap) throws {
+        let sql = """
+            INSERT OR REPLACE INTO diagnostic_gaps(
+                id, session_id, started_at, ended_at, reason, encrypted_payload
+            ) VALUES(?, ?, ?, ?, ?, ?);
+            """
+        let payload = try encrypted(gap)
+        try withStatement(sql) { statement in
+            bind(gap.id.uuidString, at: 1, to: statement)
+            bind(gap.sessionID.uuidString, at: 2, to: statement)
+            bind(gap.startedAt.timeIntervalSince1970, at: 3, to: statement)
+            if let endedAt = gap.endedAt {
+                bind(endedAt.timeIntervalSince1970, at: 4, to: statement)
+            } else {
+                bind(nil as String?, at: 4, to: statement)
+            }
+            bind(gap.reason.rawValue, at: 5, to: statement)
+            bind(payload, at: 6, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+    }
+
+    public func diagnosticGaps(sessionID: UUID) throws -> [DiagnosticGap] {
+        let sql = """
+            SELECT encrypted_payload FROM diagnostic_gaps
+            WHERE session_id = ? ORDER BY started_at;
+            """
+        return try withStatement(sql) { statement in
+            bind(sessionID.uuidString, at: 1, to: statement)
+            var results: [DiagnosticGap] = []
+            while sqlite3_step(statement) == SQLITE_ROW {
+                results.append(try decrypted(DiagnosticGap.self, from: columnData(statement, index: 0)))
+            }
+            return results
+        }
+    }
+
+    public func saveRule(_ rule: RuleDefinition) throws {
+        let sql = """
+            INSERT OR REPLACE INTO rule_definitions(
+                id, enabled, schema_version, encrypted_payload
+            ) VALUES(?, ?, ?, ?);
+            """
+        let payload = try encrypted(rule)
+        try withStatement(sql) { statement in
+            bind(rule.id.uuidString, at: 1, to: statement)
+            bind(Int64(rule.isEnabled ? 1 : 0), at: 2, to: statement)
+            bind(Int64(rule.schemaVersion), at: 3, to: statement)
+            bind(payload, at: 4, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+    }
+
+    public func rules() throws -> [RuleDefinition] {
+        let sql = "SELECT encrypted_payload FROM rule_definitions ORDER BY enabled DESC, id;"
+        return try withStatement(sql) { statement in
+            var results: [RuleDefinition] = []
+            while sqlite3_step(statement) == SQLITE_ROW {
+                results.append(try decrypted(RuleDefinition.self, from: columnData(statement, index: 0)))
+            }
+            return results
+        }
+    }
+
+    public func deleteRule(id: UUID) throws {
+        let sql = "DELETE FROM rule_definitions WHERE id = ?;"
+        try withStatement(sql) { statement in
+            bind(id.uuidString, at: 1, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+    }
+
+    public func saveRuleTrigger(_ trigger: RuleTrigger) throws {
+        let sql = """
+            INSERT OR REPLACE INTO rule_triggers(
+                id, rule_id, session_id, triggered_at, encrypted_payload
+            ) VALUES(?, ?, ?, ?, ?);
+            """
+        let payload = try encrypted(trigger)
+        try withStatement(sql) { statement in
+            bind(trigger.id.uuidString, at: 1, to: statement)
+            bind(trigger.ruleID.uuidString, at: 2, to: statement)
+            bind(trigger.sessionID?.uuidString, at: 3, to: statement)
+            bind(trigger.triggeredAt.timeIntervalSince1970, at: 4, to: statement)
+            bind(payload, at: 5, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+    }
+
     public func schemaVersion() throws -> Int {
         try Self.schemaVersion(connection.handle)
     }
 
     public func checkpoint() throws {
         try Self.execute(connection.handle, sql: "PRAGMA wal_checkpoint(TRUNCATE);")
+    }
+
+    public func observationCount(olderThan date: Date) throws -> Int {
+        let sql = "SELECT COUNT(*) FROM observations WHERE observed_at < ?;"
+        return try withStatement(sql) { statement in
+            bind(date.timeIntervalSince1970, at: 1, to: statement)
+            guard sqlite3_step(statement) == SQLITE_ROW else { return 0 }
+            return Int(sqlite3_column_int64(statement, 0))
+        }
+    }
+
+    @discardableResult
+    public func deleteObservations(olderThan date: Date) throws -> Int {
+        let count = try observationCount(olderThan: date)
+        let sql = "DELETE FROM observations WHERE observed_at < ?;"
+        try withStatement(sql) { statement in
+            bind(date.timeIntervalSince1970, at: 1, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+        return count
     }
 
     /// Removes only LinkScope development fixtures. This never reads or writes
@@ -505,6 +653,10 @@ public actor ObservationDatabase: ObservationSink {
         }
         if version < 3 {
             try applyMigration(3, sql: developmentFixtureCleanupSQL, connection: connection)
+            version = 3
+        }
+        if version < 4 {
+            try applyMigration(4, sql: migration4, connection: connection)
         }
     }
 
@@ -645,6 +797,31 @@ public actor ObservationDatabase: ObservationSink {
         DELETE FROM physical_accessories
         WHERE id NOT IN (SELECT physical_accessory_id FROM transport_identities)
           AND id NOT IN (SELECT physical_accessory_id FROM observations);
+        """
+
+    private static let migration4 = """
+        CREATE INDEX IF NOT EXISTS observations_session_path_time
+            ON observations(session_id, parameter_path, observed_at DESC)
+            WHERE session_id IS NOT NULL;
+        CREATE TABLE IF NOT EXISTS diagnostic_gaps(
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            started_at REAL NOT NULL,
+            ended_at REAL,
+            reason TEXT NOT NULL,
+            encrypted_payload BLOB NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS diagnostic_gaps_session_time
+            ON diagnostic_gaps(session_id, started_at);
+        CREATE TABLE IF NOT EXISTS rule_triggers(
+            id TEXT PRIMARY KEY,
+            rule_id TEXT NOT NULL,
+            session_id TEXT,
+            triggered_at REAL NOT NULL,
+            encrypted_payload BLOB NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS rule_triggers_rule_time
+            ON rule_triggers(rule_id, triggered_at DESC);
         """
 }
 

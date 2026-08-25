@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import LocalAuthentication
 import Security
 
 public enum KeyMaterialError: Error, LocalizedError {
@@ -17,6 +18,13 @@ public enum KeyMaterialError: Error, LocalizedError {
             "Secure random generation failed with status \(status)."
         }
     }
+}
+
+public enum KeychainAccessStatus: Sendable, Equatable {
+    case available
+    case notConfigured
+    case authorizationRequired
+    case unavailable(OSStatus)
 }
 
 public struct DatabaseKeyMaterial: Sendable {
@@ -48,16 +56,51 @@ public struct DatabaseKeyMaterial: Sendable {
 }
 
 public enum KeychainMasterKey {
-    public static func loadOrCreate(
+    public static func accessStatus(
         service: String = "cc.jasonstu.linkscope.storage",
         account: String = "database-master-key-v1"
+    ) -> KeychainAccessStatus {
+        let context = LAContext()
+        context.interactionNotAllowed = true
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account,
+            kSecReturnData: false,
+            kSecMatchLimit: kSecMatchLimitOne,
+            kSecUseAuthenticationContext: context
+        ]
+
+        switch SecItemCopyMatching(query as CFDictionary, nil) {
+        case errSecSuccess:
+            return .available
+        case errSecItemNotFound:
+            return .notConfigured
+        case errSecInteractionNotAllowed, errSecAuthFailed, errSecUserCanceled:
+            return .authorizationRequired
+        case let status:
+            return .unavailable(status)
+        }
+    }
+
+    public static func loadOrCreate(
+        service: String = "cc.jasonstu.linkscope.storage",
+        account: String = "database-master-key-v1",
+        allowAuthenticationUI: Bool = true,
+        operationPrompt: String? = nil
     ) throws -> Data {
+        let context = LAContext()
+        context.interactionNotAllowed = !allowAuthenticationUI
+        if let operationPrompt {
+            context.localizedReason = operationPrompt
+        }
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: account,
             kSecReturnData: true,
-            kSecMatchLimit: kSecMatchLimitOne
+            kSecMatchLimit: kSecMatchLimitOne,
+            kSecUseAuthenticationContext: context
         ]
 
         var result: CFTypeRef?
@@ -85,7 +128,12 @@ public enum KeychainMasterKey {
         ]
         let addStatus = SecItemAdd(add as CFDictionary, nil)
         if addStatus == errSecDuplicateItem {
-            return try loadOrCreate(service: service, account: account)
+            return try loadOrCreate(
+                service: service,
+                account: account,
+                allowAuthenticationUI: allowAuthenticationUI,
+                operationPrompt: operationPrompt
+            )
         }
         guard addStatus == errSecSuccess else {
             throw KeyMaterialError.keychain(addStatus)
@@ -93,4 +141,3 @@ public enum KeychainMasterKey {
         return data
     }
 }
-

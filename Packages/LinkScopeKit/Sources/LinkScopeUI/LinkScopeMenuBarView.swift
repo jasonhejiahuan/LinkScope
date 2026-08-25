@@ -35,6 +35,23 @@ public struct LinkScopeMenuBarView: View {
             Button(L10n.string("menubar.snapshot", language: language)) {
                 Task { await model.captureSnapshot() }
             }
+            if let diagnostic = model.activeDiagnostic {
+                Divider()
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(diagnostic.name)
+                    Text(L10n.formatted(
+                        "menubar.diagnostic.samples",
+                        language: language,
+                        diagnostic.sampleCount,
+                        diagnostic.gapCount
+                    ))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                Button(L10n.string("diagnostics.stop", language: language), role: .destructive) {
+                    Task { await model.stopDiagnostic() }
+                }
+            }
             SettingsLink {
                 Text(L10n.string("menubar.settings", language: language))
             }
@@ -47,4 +64,3 @@ public struct LinkScopeMenuBarView: View {
         .task { await model.start() }
     }
 }
-

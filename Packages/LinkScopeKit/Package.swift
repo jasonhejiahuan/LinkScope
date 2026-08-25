@@ -25,6 +25,7 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v6)],
             linkerSettings: [
                 .linkedLibrary("sqlite3"),
+                .linkedFramework("LocalAuthentication"),
                 .linkedFramework("Security")
             ]
         ),
@@ -53,6 +54,9 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v6)],
             linkerSettings: [
                 .linkedFramework("AppKit"),
+                .linkedFramework("AppIntents"),
+                .linkedFramework("Charts"),
+                .linkedFramework("CoreBluetooth"),
                 .linkedFramework("ServiceManagement")
             ]
         ),

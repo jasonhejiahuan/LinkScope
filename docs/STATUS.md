@@ -1,6 +1,6 @@
 # Implementation status
 
-Last verified: 2026-08-17 on the current Apple-silicon development Mac with
+Last verified: 2026-08-18 on the current Apple-silicon development Mac with
 Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 
 ## Milestone status
@@ -9,7 +9,7 @@ Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 | --- | --- | --- |
 | M0 Foundation | Implemented foundation | Dual targets, models, identity resolver, encrypted SQLite/migrations, import/export, test-local deterministic providers, capability contracts, and tests are present |
 | M1 Public Inspector | Implemented initial v1 | Seven public providers, evidence-based device consolidation, live connection states, protocol grouping, persistent sorting, menu bar, inspector, timeline, snapshots, complete JSON export/import, Settings, and English/Chinese UI are present |
-| M2 Diagnostics | Foundation only | Session, sampling, rule, event, and source models are preserved; sampling/alerts/App Intents remain deferred |
+| M2 Diagnostics | Implemented initial release | Explicit sessions, bounded RSSI sampling, gaps/recovery, encrypted history, charts/CSV, rate-limited alerts, retention controls, and App Intents are present |
 | M3 Private Providers | Manifest foundation only | Versioned empty manifests and isolation rules are present; no production target links or loads a private framework |
 | M4 Advanced Dashboard | Foundation only | Versioned dashboard/widget/grid/source models are present; the interactive twelve-column editor remains deferred |
 
@@ -17,8 +17,27 @@ Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 
 ## Verification evidence
 
-- `swift test` passes 26 Swift Testing tests: 20 core/identity/connection/hub
-  tests, four persistence tests, and two public-provider contract tests.
+- Version ownership is project-level. Both application targets currently
+  resolve to marketing version 1.2.0 and build 5 without target overrides.
+- Fresh Full and Lite Debug build-for-testing actions succeed. Their generated
+  Info.plists contain the expected bundle identifiers and version 1.2.0 (5).
+- Both generated Debug bundles pass strict deep code-signature verification and
+  carry hardened-runtime signatures from the installed Apple Development
+  identity. Lite carries App Sandbox, Bluetooth, and user-selected-file
+  entitlements; Full does not carry App Sandbox.
+- Dynamic-link inspection of the actual Debug implementation dylibs found only
+  public system frameworks. No BluetoothManager, BluetoothServices,
+  BluetoothAudio, or other private-framework linkage was found in Lite.
+- Both schemes use Release for Archive. Command-line Archive is blocked in the
+  current managed environment before compilation because the OS rejects
+  SwiftPM's manifest sandbox. The installed keychain currently exposes Apple
+  Development identities but no Developer ID Application or Mac App
+  Distribution identity, so distributable signing/export remains external
+  release evidence rather than a completed local result.
+
+- Both Full and Lite build-for-testing actions compile the M2 implementation and
+  test targets. Direct `swift test` execution remains blocked in the current
+  managed workspace because SwiftPM's manifest sandbox cannot be applied.
 - Both `LinkScope` and `LinkScope Lite` Debug schemes build as native `.app`
   bundles at version 0.1.3 build 4 with the local shared Swift package.
 - Both bundles launch through `script/build_and_run.sh --verify`.
@@ -50,4 +69,4 @@ Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 - Developer ID signing, notarization, and Mac App Store Lite packaging with the
   user's production identities/profiles.
 - XPC crash-containment and private capability probes before M3 integration.
-- M2 diagnostics/automation and M4 advanced dashboard interaction.
+- M4 advanced dashboard interaction.
