@@ -1,72 +1,57 @@
 # Implementation status
 
-Last verified: 2026-08-18 on the current Apple-silicon development Mac with
+Last verified: 2026-08-25 on the current Apple-silicon development Mac with
 Xcode 27 beta, Swift 6.4, and the macOS 27 SDK.
 
 ## Milestone status
 
 | Milestone | Current state | Notes |
 | --- | --- | --- |
-| M0 Foundation | Implemented foundation | Dual targets, models, identity resolver, encrypted SQLite/migrations, import/export, test-local deterministic providers, capability contracts, and tests are present |
-| M1 Public Inspector | Implemented initial v1 | Seven public providers, evidence-based device consolidation, live connection states, protocol grouping, persistent sorting, menu bar, inspector, timeline, snapshots, complete JSON export/import, Settings, and English/Chinese UI are present |
-| M2 Diagnostics | Implemented initial release | Explicit sessions, bounded RSSI sampling, gaps/recovery, encrypted history, charts/CSV, rate-limited alerts, retention controls, and App Intents are present |
-| M3 Private Providers | Manifest foundation only | Versioned empty manifests and isolation rules are present; no production target links or loads a private framework |
-| M4 Advanced Dashboard | Foundation only | Versioned dashboard/widget/grid/source models are present; the interactive twelve-column editor remains deferred |
+| M0 Foundation | Implemented | Dual targets, versioned models, identity resolution, encrypted SQLite migrations, import/export, capability contracts, and tests |
+| M1 Public Inspector | Implemented | Seven public providers, evidence-based device consolidation, status-aware navigation, inspector, timeline, snapshots, export/import, Settings, and English/Chinese UI |
+| M2 Diagnostics | Implemented | Explicit sessions, bounded sampling, gaps and restart recovery, encrypted history, charts/CSV, alerts, retention controls, App Intents, and permission management |
+| M3 Private Providers | Manifest foundation only | Versioned empty manifests and isolation rules remain; production targets do not link or load private frameworks |
+| M4 Advanced Dashboard | Implemented in 2.0 | Named dashboards, twelve-column editing, six widget kinds, indexed history, import/export, unknown-field preservation, and Full/Lite portability |
 
-“Foundation only” means deferred, not cancelled.
+“Manifest foundation only” means deferred, not cancelled.
 
-## Verification evidence
+## Current verification evidence
 
-- Version ownership is project-level. Both application targets currently
-  resolve to marketing version 1.2.0 and build 5 without target overrides.
-- Fresh Full and Lite Debug build-for-testing actions succeed. Their generated
-  Info.plists contain the expected bundle identifiers and version 1.2.0 (5).
-- Both generated Debug bundles pass strict deep code-signature verification and
-  carry hardened-runtime signatures from the installed Apple Development
-  identity. Lite carries App Sandbox, Bluetooth, and user-selected-file
-  entitlements; Full does not carry App Sandbox.
-- Dynamic-link inspection of the actual Debug implementation dylibs found only
-  public system frameworks. No BluetoothManager, BluetoothServices,
-  BluetoothAudio, or other private-framework linkage was found in Lite.
-- Both schemes use Release for Archive. Command-line Archive is blocked in the
-  current managed environment before compilation because the OS rejects
-  SwiftPM's manifest sandbox. The installed keychain currently exposes Apple
-  Development identities but no Developer ID Application or Mac App
-  Distribution identity, so distributable signing/export remains external
-  release evidence rather than a completed local result.
+- Version ownership remains project-level. Debug and Release settings for both
+  targets resolve by inheritance to `2.0.0 (9)` without target overrides.
+- The shared Swift package passes 51 tests, including encrypted dashboard CRUD,
+  indexed source queries, layout collision behavior, reversible source IDs,
+  future-schema round trips, diagnostics, and persistence restart behavior.
+- Fresh Full and Lite Debug builds pass strict deep code-signature verification
+  with the same Apple Development identity and team. Each bundle has its exact
+  application identifier, Data Protection Keychain group, embedded profile,
+  bundle identifier, expected display name, and Bluetooth usage description.
+- Fresh Full and Lite Release builds succeed as Universal 2 (`x86_64 arm64`)
+  bundles at `2.0.0 (9)` and pass strict Apple Development signature checks.
+- Real signed launches of both editions complete without an automatic Keychain
+  password request or Bluetooth authorization sheet. Permission requests are
+  initiated from the shared post-window permission manager; previously granted
+  authorization remains valid across signed rebuilds.
+- Full runtime acceptance covered dashboard creation, Current Value and Time
+  Series widgets, inspector edits, keyboard Undo, pointer drag and resize,
+  normal Quit, and relaunch restoration.
+- A Full dashboard containing a Full-only source imports into Lite as an
+  explained unavailable-source widget. The dashboard and source identifier
+  survive a normal Quit and signed relaunch instead of being removed.
+- Dashboard history uses an indexed `(transport_identity_id, parameter_path,
+  observed_at)` query, shares in-flight/cache work, decimates away from the main
+  actor, and does not start a provider sampling session.
+- Toolbar and search ownership is limited to the root scene. Real Full and Lite
+  launches no longer reproduce the nested `NSToolbar` startup crash.
 
-- Both Full and Lite build-for-testing actions compile the M2 implementation and
-  test targets. Direct `swift test` execution remains blocked in the current
-  managed workspace because SwiftPM's manifest sandbox cannot be applied.
-- Both `LinkScope` and `LinkScope Lite` Debug schemes build as native `.app`
-  bundles at version 0.1.3 build 4 with the local shared Swift package.
-- Both bundles launch through `script/build_and_run.sh --verify`.
-- The Lite bundle has its distinct bundle ID and build-time sandbox/Bluetooth/file
-  entitlements. The unsigned local verification build does not claim App Store
-  signing or sandbox-runtime proof.
-- A local 10-second post-start check remained at 4647 observation rows with
-  point-in-time process CPU at 0.0% before and after, providing narrow evidence
-  that the idle implementation does not run a recurring observation loop. This
-  is not the reference-machine Instruments gate.
-- On the current Mac, current-session SQL metadata showed 15 physical HID
-  accessories with up to six HID transports consolidated under one physical
-  accessory, plus one cross-provider physical accessory. The UI showed 26 paired
-  devices as Saved / Not Connected instead of counting them as connected.
-- A 0.1.2 hardware smoke run showed only the Magic Trackpad as Connected and
-  J-4ANC as Saved / Not Connected. The public system report exposed a separate
-  class-zero BLE baseband alias; LinkScope retains that raw fact without
-  promoting it to an active user-facing connection. The address-shaped Core
-  Audio endpoint and saved Bluetooth identity are consolidated through a
-  normalized cross-provider identifier.
-- `otool` inspection found no `BluetoothManager`, `BluetoothServices`,
-  `BluetoothAudio`, or other private-framework linkage in Lite.
+## External release evidence still required
 
-## Still requiring later evidence
-
-- Hardware matrix runs on Magic Mouse/Trackpad, Bluetooth audio, controller,
-  Intel, minimum macOS 15, permission-denied, sleep/wake, and reconnect cases.
-- Reference-machine Release/Universal 2 Energy Log, wakeup, memory, and CPU capture.
-- Developer ID signing, notarization, and Mac App Store Lite packaging with the
-  user's production identities/profiles.
-- XPC crash-containment and private capability probes before M3 integration.
-- M4 advanced dashboard interaction.
+- Hardware matrix runs on Bluetooth pointing devices, audio, controllers,
+  permission-denied, Bluetooth-disabled, sleep/wake, reconnect, Intel, and the
+  minimum supported macOS release.
+- Reference-machine Release/Universal 2 Energy Log, wakeup, memory, CPU, and
+  50-widget responsiveness capture.
+- Developer ID signing, notarization, Gatekeeper assessment, and Mac App Store
+  Lite packaging with the production identities and profiles.
+- XPC crash containment and private capability probes before any M3 production
+  integration.

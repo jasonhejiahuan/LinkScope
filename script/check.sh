@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXPECTED_TEAM_ID="WBU2AFY549"
+EXPECTED_MARKETING_VERSION="2.0.0"
+EXPECTED_BUILD_NUMBER="9"
 LAST_VERIFIED_AUTHORITY=""
 
 if [[ -z "${DEVELOPER_DIR:-}" && -d /Applications/Xcode-beta.app/Contents/Developer ]]; then
@@ -34,7 +36,7 @@ verify_signed_bundle() {
     return 1
   fi
 
-  local actual_bundle_id actual_display_name
+  local actual_bundle_id actual_display_name actual_marketing_version actual_build_number
   actual_bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_bundle/Contents/Info.plist")"
   if [[ "$actual_bundle_id" != "$expected_bundle_id" ]]; then
     echo "$app_bundle bundle identifier is $actual_bundle_id, expected $expected_bundle_id." >&2
@@ -43,6 +45,12 @@ verify_signed_bundle() {
   actual_display_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$app_bundle/Contents/Info.plist")"
   if [[ "$actual_display_name" != "$expected_display_name" ]]; then
     echo "$app_bundle display name is $actual_display_name, expected $expected_display_name." >&2
+    return 1
+  fi
+  actual_marketing_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_bundle/Contents/Info.plist")"
+  actual_build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app_bundle/Contents/Info.plist")"
+  if [[ "$actual_marketing_version" != "$EXPECTED_MARKETING_VERSION" || "$actual_build_number" != "$EXPECTED_BUILD_NUMBER" ]]; then
+    echo "$app_bundle is version $actual_marketing_version ($actual_build_number), expected $EXPECTED_MARKETING_VERSION ($EXPECTED_BUILD_NUMBER)." >&2
     return 1
   fi
 

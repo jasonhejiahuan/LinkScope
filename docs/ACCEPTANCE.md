@@ -1,6 +1,6 @@
 # Acceptance matrix
 
-## Functional v1 gates
+## Functional 2.0 gates
 
 | Area | Evidence required |
 | --- | --- |
@@ -17,6 +17,20 @@
 | Rules | Availability is preserved; notifications require authorization and enforce a repeat interval |
 | Automation | App Intents expose start/stop/status/snapshot without adding idle polling |
 | Retention | Unlimited is the default; deletion shows an exact preview and requires confirmation |
+| Permissions | Launch is non-interactive; Keychain, Bluetooth, and notification requests follow an explained user action after the main window appears |
+| Dashboard | Named twelve-column layouts support pointer and keyboard editing, Undo/Redo, restart persistence, six widget kinds, indexed history, and lossless Full/Lite import |
+
+## Verified 2.0 evidence
+
+- The shared package passes 51 tests.
+- Full and Lite Debug bundles build with the same Apple Development identity and
+  pass strict signature, entitlement, provisioning, bundle, and generated
+  version checks.
+- Full and Lite Release bundles build as signed Universal 2 applications at
+  `2.0.0 (9)`.
+- Signed runtime acceptance covers non-blocking launch, dashboard pointer and
+  keyboard editing, normal-quit persistence, and Full-to-Lite unavailable-source
+  preservation.
 
 ## Reference-machine performance gate
 
