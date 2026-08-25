@@ -1,0 +1,148 @@
+name: Publish release
+
+on:
+  workflow_call:
+    inputs:
+      pull-request-number:
+        description: Pull request whose changes are being released
+        required: true
+        type: number
+      merge-commit-sha:
+        description: Commit to tag for the release
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build changelog and publish release
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ inputs.pull-request-number }}
+          MERGE_COMMIT_SHA: ${{ inputs.merge-commit-sha }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pullNumber = Number(process.env.PR_NUMBER);
+            const mergeSha = process.env.MERGE_COMMIT_SHA;
+
+            const { data: pull } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+            if (!pull.merged) {
+              core.setFailed(`Pull request #${pullNumber} is not merged.`);
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pullNumber,
+              per_page: 100,
+            });
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner,
+              repo,
+              pull_number: pullNumber,
+              per_page: 100,
+            });
+
+            const clean = (text) => (text || '')
+              .replace(/<!--([\s\S]*?)-->/g, '')
+              .trim();
+            const description = clean(pull.body);
+            const commitNotes = commits
+              .map(({ commit }) => clean(commit.message).split('\n')[0])
+              .filter((message) => message && !/^merge\b/i.test(message));
+            const uniqueCommitNotes = [...new Set(commitNotes)];
+
+            const statusName = {
+              added: 'Added',
+              modified: 'Updated',
+              removed: 'Removed',
+              renamed: 'Renamed',
+              copied: 'Copied',
+              changed: 'Changed',
+              unchanged: 'Unchanged',
+            };
+            const fileNotes = files.map((file) => {
+              const status = statusName[file.status] || file.status;
+              const previous = file.previous_filename
+                ? ` (from \`${file.previous_filename}\`)`
+                : '';
+              return `- **${status}:** \`${file.filename}\`${previous} (+${file.additions}/-${file.deletions})`;
+            });
+
+            const labels = pull.labels.map((label) => label.name).sort();
+            const author = pull.user?.login ? `@${pull.user.login}` : 'unknown';
+            const mergedBy = pull.merged_by?.login ? `@${pull.merged_by.login}` : 'unknown';
+            const shortSha = mergeSha.slice(0, 7);
+            const tag = `release-pr-${pullNumber}`;
+            const title = `Release ${tag}: ${pull.title}`;
+
+            const summary = description
+              ? description
+              : uniqueCommitNotes.length
+                ? uniqueCommitNotes.map((note) => `- ${note}`).join('\n')
+                : 'This release contains the merged changes described by the file-level summary below.';
+            const commitSection = uniqueCommitNotes.length
+              ? uniqueCommitNotes.map((note) => `- ${note}`).join('\n')
+              : '- No additional commit summaries were provided.';
+            const fileSection = fileNotes.length
+              ? fileNotes.join('\n')
+              : '- GitHub reported no changed files for this pull request.';
+
+            const body = [
+              '## What changed',
+              '',
+              summary,
+              '',
+              '## Commit summary',
+              '',
+              commitSection,
+              '',
+              `## Changed files (${files.length})`,
+              '',
+              fileSection,
+              '',
+              '## Release metadata',
+              '',
+              `- **Pull request:** [#${pullNumber}](${pull.html_url}) — ${pull.title}`,
+              `- **Author:** ${author}`,
+              `- **Merged by:** ${mergedBy}`,
+              `- **Merge commit:** [\`${shortSha}\`](${pull.html_url}/commits/${mergeSha})`,
+              `- **Labels:** ${labels.length ? labels.map((label) => `\`${label}\``).join(', ') : 'None'}`,
+              '',
+              `**Full comparison:** [View all changes](${pull.html_url}/files)`,
+            ].join('\n');
+
+            const existing = await github.paginate(github.rest.repos.listReleases, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+            if (existing.some((release) => release.tag_name === tag)) {
+              core.notice(`Release ${tag} already exists; no duplicate was created.`);
+              return;
+            }
+
+            const { data: release } = await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tag,
+              target_commitish: mergeSha,
+              name: title,
+              body,
+              draft: false,
+              prerelease: false,
+            });
+            core.notice(`Published ${release.html_url}`);
