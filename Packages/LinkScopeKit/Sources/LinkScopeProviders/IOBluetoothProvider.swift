@@ -10,7 +10,7 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
         capabilities: [
             ProviderCapability(id: "iobluetooth.paired.read", operation: .read),
             ProviderCapability(id: "iobluetooth.connections.observe", operation: .observe),
-            ProviderCapability(id: "iobluetooth.rssi.read", operation: .read, parameterPath: "radio.rssi")
+            ProviderCapability(id: "iobluetooth.rssi.sample", operation: .sample, parameterPath: "radio.rssi")
         ]
     )
 
@@ -51,6 +51,38 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
         }
         emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .stopped)))
         emitter.finish()
+    }
+
+    public func sample(_ request: ProviderSampleRequest) async -> AccessoryObservation? {
+        guard request.parameterPath.rawValue == "radio.rssi" else { return nil }
+        return await MainActor.run {
+            let paired = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
+            guard let device = paired.first(where: {
+                ($0.addressString ?? "") == request.transport.rawIdentifier
+            }) else { return nil }
+            let transport = transportIdentity(for: device)
+            guard device.isConnected() else {
+                return AccessoryObservation(
+                    transportIdentity: transport,
+                    parameterPath: request.parameterPath,
+                    value: nil,
+                    availability: .notReported(
+                        detail: "RSSI is only readable while the Bluetooth device is connected"
+                    ),
+                    sessionID: request.sessionID
+                )
+            }
+            let rssi = Int64(device.rawRSSI())
+            return AccessoryObservation(
+                transportIdentity: transport,
+                parameterPath: request.parameterPath,
+                value: rssi == 127 ? nil : .signedInt(rssi),
+                availability: rssi == 127
+                    ? .notReported(detail: "The controller returned the RSSI unavailable sentinel")
+                    : .available,
+                sessionID: request.sessionID
+            )
+        }
     }
 
     @objc private func deviceConnected(

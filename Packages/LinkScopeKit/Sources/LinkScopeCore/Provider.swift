@@ -90,6 +90,13 @@ public protocol AccessoryProvider: Sendable {
     func events() async -> AsyncStream<ProviderEvent>
     func start() async
     func stop() async
+    func sample(_ request: ProviderSampleRequest) async -> AccessoryObservation?
+}
+
+public extension AccessoryProvider {
+    func sample(_ request: ProviderSampleRequest) async -> AccessoryObservation? {
+        nil
+    }
 }
 
 public protocol ObservationSink: Sendable {
@@ -97,4 +104,3 @@ public protocol ObservationSink: Sendable {
     func persist(_ status: ProviderStatus) async throws
     func persist(_ event: TimelineEvent) async throws
 }
-

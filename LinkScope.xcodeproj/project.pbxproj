@@ -15,9 +15,14 @@
 		A10000000000000000000006 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000002 /* InfoPlist.strings */; };
 		A10000000000000000000007 /* LinkScopeCore in Frameworks */ = {isa = PBXBuildFile; productRef = A80000000000000000000003 /* LinkScopeCore */; };
 		A10000000000000000000008 /* LinkScopeUI in Frameworks */ = {isa = PBXBuildFile; productRef = A80000000000000000000004 /* LinkScopeUI */; };
+		A1E84098303456DA009F2E43 /* LinkScope.icon in Resources */ = {isa = PBXBuildFile; fileRef = A1E84097303456DA009F2E43 /* LinkScope.icon */; };
+		A1E84099303456DA009F2E43 /* LinkScope.icon in Resources */ = {isa = PBXBuildFile; fileRef = A1E84097303456DA009F2E43 /* LinkScope.icon */; };
+		A1E8409B30345972009F2E43 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1E8409A30345972009F2E43 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A1E84097303456DA009F2E43 /* LinkScope.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = LinkScope.icon; sourceTree = "<group>"; };
+		A1E8409A30345972009F2E43 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A20000000000000000000001 /* LinkScopeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkScopeApp.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* LinkScope.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LinkScope.entitlements; sourceTree = "<group>"; };
 		A20000000000000000000003 /* LinkScopeLiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkScopeLiteApp.swift; sourceTree = "<group>"; };
@@ -55,6 +60,7 @@
 		A40000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				A1E84097303456DA009F2E43 /* LinkScope.icon */,
 				A40000000000000000000002 /* Apps */,
 				A40000000000000000000005 /* Packages */,
 				A40000000000000000000006 /* Products */,
@@ -86,6 +92,7 @@
 				A20000000000000000000003 /* LinkScopeLiteApp.swift */,
 				A20000000000000000000004 /* LinkScopeLite.entitlements */,
 				A70000000000000000000002 /* InfoPlist.strings */,
+				A1E8409A30345972009F2E43 /* PrivacyInfo.xcprivacy */,
 			);
 			path = LinkScopeLite;
 			sourceTree = "<group>";
@@ -198,6 +205,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1E84098303456DA009F2E43 /* LinkScope.icon in Resources */,
 				A10000000000000000000002 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -206,6 +214,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1E8409B30345972009F2E43 /* PrivacyInfo.xcprivacy in Resources */,
+				A1E84099303456DA009F2E43 /* LinkScope.icon in Resources */,
 				A10000000000000000000006 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,16 +270,19 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.4.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -280,31 +293,33 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.4.0;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
 		AA0000000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = LinkScope;
 				CODE_SIGN_ENTITLEMENTS = Apps/LinkScope/LinkScope.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = WBU2AFY549;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "LinkScope DEBUG";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope reads Bluetooth accessory state and parameters without controlling the accessory.";
-				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LINKSCOPE_FULL";
@@ -320,17 +335,16 @@
 					arm64,
 					x86_64,
 				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = LinkScope;
 				CODE_SIGN_ENTITLEMENTS = Apps/LinkScope/LinkScope.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = WBU2AFY549;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = LinkScope;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope reads Bluetooth accessory state and parameters without controlling the accessory.";
-				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LINKSCOPE_FULL";
@@ -342,18 +356,17 @@
 		AA0000000000000000000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = LinkScope;
 				CODE_SIGN_ENTITLEMENTS = Apps/LinkScopeLite/LinkScopeLite.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = WBU2AFY549;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "LinkScope Lite DEBUG";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope Lite reads Bluetooth accessory state and parameters without controlling the accessory.";
-				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope.lite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -370,18 +383,17 @@
 					arm64,
 					x86_64,
 				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = LinkScope;
 				CODE_SIGN_ENTITLEMENTS = Apps/LinkScopeLite/LinkScopeLite.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = WBU2AFY549;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "LinkScope Lite";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope Lite reads Bluetooth accessory state and parameters without controlling the accessory.";
-				MARKETING_VERSION = 0.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope.lite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -401,7 +413,7 @@
 				AA0000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		A90000000000000000000002 /* Build configuration list for PBXNativeTarget "LinkScope" */ = {
 			isa = XCConfigurationList;
@@ -410,7 +422,7 @@
 				AA0000000000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LinkScope Lite" */ = {
 			isa = XCConfigurationList;
@@ -419,7 +431,7 @@
 				AA0000000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 

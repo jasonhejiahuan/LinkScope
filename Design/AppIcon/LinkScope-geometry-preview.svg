@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 465 432">
+  <defs>
+    <linearGradient id="orbit" x1="0" y1="0" x2="0.18" y2="1">
+      <stop offset="0" stop-color="#BFDDF8" stop-opacity="0.08"/>
+      <stop offset="0.34" stop-color="#7FAFE9" stop-opacity="0.56"/>
+      <stop offset="0.72" stop-color="#4F8FDC" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#6FA4E3" stop-opacity="0.84"/>
+    </linearGradient>
+    <linearGradient id="topNode" x1="0.25" y1="0" x2="0.75" y2="1">
+      <stop offset="0" stop-color="#72ACEB"/>
+      <stop offset="1" stop-color="#4D8EDB"/>
+    </linearGradient>
+    <linearGradient id="lowerNode" x1="0.25" y1="0" x2="0.75" y2="1">
+      <stop offset="0" stop-color="#408AE6"/>
+      <stop offset="1" stop-color="#1F6FDF"/>
+    </linearGradient>
+    <linearGradient id="scope" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#347FD8"/>
+      <stop offset="0.55" stop-color="#1769D8"/>
+      <stop offset="1" stop-color="#2677DD"/>
+    </linearGradient>
+  </defs>
+  <circle cx="236" cy="220" r="170" fill="none" stroke="#3E86DF"
+          stroke-width="10" stroke-linecap="round" stroke-dasharray="252.20 815.94"
+          transform="rotate(165 236 220)"/>
+  <circle cx="236" cy="220" r="170" fill="none" stroke="url(#orbit)"
+          stroke-width="10" stroke-linecap="round" stroke-dasharray="560.77 507.37"
+          transform="rotate(-70 236 220)"/>
+  <circle cx="236" cy="47" r="37" fill="url(#topNode)"/>
+  <circle cx="98" cy="322" r="37" fill="url(#lowerNode)"/>
+  <circle cx="236" cy="220" r="64" fill="none" stroke="url(#scope)" stroke-width="31"/>
+</svg>

@@ -3,6 +3,33 @@
 Every user-visible update advances both the marketing version and build number
 for the Full and Lite targets.
 
+## 1.4.0 (9) — 2026-08-25
+
+### Added
+
+- User-started, time-limited diagnostic sessions with explicit source selection,
+  bounded RSSI sampling, deterministic stop, sleep gaps, and restart recovery.
+- Encrypted diagnostic run, gap, alert rule, and trigger persistence with schema
+  migration 4 and indexed session/time-range observation queries.
+- Diagnostic history, time-series charts, comparison metrics, raw tables, and
+  per-session CSV export.
+- Rate-limited numeric, change, availability, and provider-health alert rules
+  with explicit notification authorization.
+- App Intents and App Shortcuts for starting, stopping, inspecting, and capturing
+  diagnostics and snapshots.
+- Explicit history-retention preview and destructive confirmation; unlimited
+  retention remains the default.
+- A shared Full/Lite permission manager in Settings, with post-window first-run
+  setup for saved history, Bluetooth accessories, and optional notifications.
+
+### Changed
+
+- Bluetooth sidebar glyphs now use the standard class-of-device category when
+  available instead of rendering every saved Bluetooth accessory as a radio.
+- Keychain access is checked without authentication UI during launch. LinkScope
+  now requests access only from the permission manager and otherwise continues
+  in memory-only mode instead of prompting before the main window appears.
+
 ## 0.1.3 (4) — 2026-08-17
 
 ### Development

@@ -1,3 +1,4 @@
+import AppKit
 import LinkScopeCore
 import SwiftUI
 import UniformTypeIdentifiers
@@ -6,6 +7,7 @@ private enum InspectorSelection: Hashable {
     case device(UUID)
     case providers
     case timeline
+    case diagnostics
 }
 
 public struct LinkScopeRootView: View {
@@ -13,12 +15,14 @@ public struct LinkScopeRootView: View {
     @AppStorage("LinkScope.uiLanguage") private var languageCode = AppLanguage.defaultLanguage.rawValue
     @AppStorage("LinkScope.sidebarGrouping") private var groupingRawValue = AccessoryListGrouping.connection.rawValue
     @AppStorage("LinkScope.sidebarSortOrder") private var sortOrderRawValue = AccessoryListSortOrder.nameAscending.rawValue
+    @AppStorage("LinkScope.permissionOnboardingCompleted.v1") private var permissionOnboardingCompleted = false
     @State private var selection: InspectorSelection? = .providers
     @State private var searchText = ""
     @State private var exporting = false
     @State private var importing = false
     @State private var exportDocument: SnapshotDocument?
     @State private var exportError: String?
+    @State private var showingPermissions = false
 
     public init(model: LinkScopeApplicationModel) {
         self.model = model
@@ -91,6 +95,13 @@ public struct LinkScopeRootView: View {
                         Image(systemName: "clock.arrow.trianglehead.counterclockwise.rotate.90")
                     }
                     .tag(InspectorSelection.timeline)
+
+                    Label {
+                        LText("diagnostics.title")
+                    } icon: {
+                        Image(systemName: "waveform.path.ecg")
+                    }
+                    .tag(InspectorSelection.diagnostics)
                 } header: {
                     LText("sidebar.system")
                 }
@@ -142,6 +153,18 @@ public struct LinkScopeRootView: View {
             }
 
             ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    showingPermissions = true
+                } label: {
+                    Label(
+                        L10n.string("permissions.title", language: language),
+                        systemImage: model.permissionsNeedAttention
+                            ? "exclamationmark.shield.fill"
+                            : "checkmark.shield"
+                    )
+                }
+                .help(L10n.string("permissions.open.help", language: language))
+
                 Button {
                     Task { await model.captureSnapshot() }
                 } label: {
@@ -205,8 +228,39 @@ public struct LinkScopeRootView: View {
         } message: {
             Text(exportError ?? "")
         }
+        .sheet(isPresented: $showingPermissions) {
+            PermissionManagementView(
+                model: model,
+                isOnboarding: !permissionOnboardingCompleted,
+                showsCompletionButton: !permissionOnboardingCompleted
+            ) {
+                permissionOnboardingCompleted = true
+                showingPermissions = false
+                Task { await model.start() }
+            }
+            .environment(\.linkScopeLanguage, language)
+            .frame(width: 620)
+            .interactiveDismissDisabled(!permissionOnboardingCompleted)
+        }
         .task {
-            await model.start()
+            await model.refreshPermissionStatuses()
+            await Task.yield()
+            if !permissionOnboardingCompleted || model.permissionsNeedAttention {
+                showingPermissions = true
+            }
+            if permissionOnboardingCompleted {
+                await model.start()
+            }
+        }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(
+            for: NSWorkspace.willSleepNotification
+        )) { _ in
+            Task { await model.systemWillSleep() }
+        }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(
+            for: NSWorkspace.didWakeNotification
+        )) { _ in
+            Task { await model.systemDidWake() }
         }
     }
 
@@ -230,6 +284,8 @@ public struct LinkScopeRootView: View {
             )
         case .timeline:
             TimelineListView(events: model.snapshot.timeline)
+        case .diagnostics:
+            DiagnosticsView(model: model)
         case nil:
             EmptyInspectorView()
         }
@@ -311,7 +367,10 @@ private struct AccessorySidebarRow: View {
     }
 
     private var protocolIcon: String {
-        switch entry.summary.primaryProtocol {
+        if let bluetoothDeviceIcon {
+            return bluetoothDeviceIcon
+        }
+        return switch iconProtocol {
         case .bluetooth: "wave.3.right"
         case .usb: "cable.connector"
         case .builtIn: "laptopcomputer"
@@ -321,6 +380,56 @@ private struct AccessorySidebarRow: View {
         case .system: "gearshape.2"
         case .unknown: "questionmark.circle"
         }
+    }
+
+    private var bluetoothDeviceIcon: String? {
+        guard let classOfDevice = entry.bluetoothClassOfDevice,
+              entry.summary.protocols.contains(.bluetooth) else {
+            return nil
+        }
+
+        let majorDeviceClass = (classOfDevice >> 8) & 0x1F
+        switch majorDeviceClass {
+        case 1:
+            return "laptopcomputer"
+        case 2:
+            return "iphone"
+        case 3:
+            return "network"
+        case 4:
+            return "headphones"
+        case 5:
+            let peripheralClass = (classOfDevice >> 6) & 0x03
+            switch peripheralClass {
+            case 1:
+                return "keyboard"
+            case 2:
+                return "computermouse"
+            case 3:
+                return "keyboard.badge.ellipsis"
+            default:
+                return "gamecontroller"
+            }
+        case 6:
+            return "camera"
+        case 7:
+            return "applewatch"
+        case 8:
+            return "teddybear"
+        case 9:
+            return "cross.case"
+        default:
+            return "questionmark.circle"
+        }
+    }
+
+    private var iconProtocol: ConnectionProtocol {
+        let deviceTypePriority: [ConnectionProtocol] = [
+            .builtIn, .gameController, .usb, .network,
+            .virtual, .system, .unknown, .bluetooth
+        ]
+        return deviceTypePriority.first(where: entry.summary.protocols.contains)
+            ?? entry.summary.primaryProtocol
     }
 
     private var statusColor: Color {

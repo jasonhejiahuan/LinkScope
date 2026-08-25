@@ -12,6 +12,20 @@
   First inspect the real process output, unified log, crash report, exit status,
   build products, entitlements, and relevant state transitions.
 
+## Versioning ownership
+
+- Define `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` only on the
+  `LinkScope` project build configurations. Debug and Release must resolve from
+  those shared project-level values.
+- The `LinkScope` and `LinkScope Lite` targets must inherit both version
+  settings. Do not add target-level values or duplicate the version numbers in
+  either target.
+- Never set a target value to `$(MARKETING_VERSION)` or
+  `$(CURRENT_PROJECT_VERSION)` because that creates a self-reference. Remove
+  the target override to restore inheritance.
+- When advancing a release, update the project-level values once, then verify
+  the resolved values and generated Info.plist for both application targets.
+
 ## Logging policy
 
 - If the existing logs do not establish the failure, add project-relevant

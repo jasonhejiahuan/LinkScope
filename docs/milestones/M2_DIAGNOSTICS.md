@@ -1,6 +1,6 @@
 # Milestone 2 — Diagnostics and Monitoring
 
-**Status:** deferred, not cancelled.
+**Status:** implemented for the public Full and Lite editions.
 
 ## Restored scope
 
@@ -31,3 +31,14 @@
 - Historical queries remain bounded and indexed on a reference database containing
   at least one million observations.
 
+## Implemented release surface
+
+- Explicit source selection, duration, purpose, fixed/adaptive policy models,
+  bounded RSSI sampling, deterministic stop, and persisted run history.
+- Sleep and application-restart gaps; no invented backfill.
+- Encrypted schema-v4 run, gap, rule, and trigger records plus session/path/time
+  indexes.
+- Time-series charting, aggregation, comparison, raw history, and CSV export.
+- Rate-limited observation and provider-health rules with opt-in notifications.
+- App Intents and App Shortcuts for start, stop, status, and snapshots.
+- Explicit retention preview/confirmation with unlimited history as the default.
