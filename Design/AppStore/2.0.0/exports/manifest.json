@@ -1,0 +1,255 @@
+{
+  "formatVersion": 1,
+  "renderer": "SVG + sharp",
+  "sharpVersion": "0.35.4",
+  "shots": [
+    {
+      "locale": "en-US",
+      "scene": "providers",
+      "title": "See every source clearly.",
+      "input": "captured/providers-en.png",
+      "inputSHA256": "c733236955094b2219d50960fa8892ec189880ff19bb7d82dbe393b9f186102a",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 2798,
+        "height": 1664
+      },
+      "placement": {
+        "x": 347.03,
+        "y": 430,
+        "width": 2185.94,
+        "height": 1300,
+        "scale": 0.78125,
+        "enlarged": false
+      },
+      "output": "exports/en-US/01-providers.png",
+      "outputSHA256": "6f0482413ec5f3a6e7bf4cfee1c3d5612343ef2c233033f444694e9e785ff7a6",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "zh-Hans",
+      "scene": "providers",
+      "title": "数据来源，一目了然。",
+      "input": "captured/providers-zh.png",
+      "inputSHA256": "88a2a2d29d9132f31bdf09f04cc921485a7c8476a6c4cbc675e1e1aa1927d04c",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 2798,
+        "height": 1664
+      },
+      "placement": {
+        "x": 347.03,
+        "y": 430,
+        "width": 2185.94,
+        "height": 1300,
+        "scale": 0.78125,
+        "enlarged": false
+      },
+      "output": "exports/zh-Hans/01-providers.png",
+      "outputSHA256": "8373d2e8d280700a761f746f6056ce07449f0013153227de827e80b216025e9b",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "en-US",
+      "scene": "dashboard",
+      "title": "Your details. Your dashboard.",
+      "input": "captured/dashboard-en.png",
+      "inputSHA256": "fabddd8def18c9dfb2aadddfb05f125a8f4e519965975253d42bc1dfd19bbaf2",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 2798,
+        "height": 1664
+      },
+      "placement": {
+        "x": 347.03,
+        "y": 430,
+        "width": 2185.94,
+        "height": 1300,
+        "scale": 0.78125,
+        "enlarged": false
+      },
+      "output": "exports/en-US/02-dashboard.png",
+      "outputSHA256": "c08ce88345fe50e015342f579c7e956d11741b5aecb8d2ce05c3376207aed7be",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "zh-Hans",
+      "scene": "dashboard",
+      "title": "关心的数据，按你的方式呈现。",
+      "input": "captured/dashboard-zh.png",
+      "inputSHA256": "96c7587df44e3c4fc3f027d9688616bc2faeb825a9d81d305677749494bb9e0e",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 2798,
+        "height": 1664
+      },
+      "placement": {
+        "x": 347.03,
+        "y": 430,
+        "width": 2185.94,
+        "height": 1300,
+        "scale": 0.78125,
+        "enlarged": false
+      },
+      "output": "exports/zh-Hans/02-dashboard.png",
+      "outputSHA256": "05c6e92fd3453403a850e7e73a2f14a1749ca7067f2fb5439420fc8e398e1e5d",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "en-US",
+      "scene": "diagnostics",
+      "title": "Review the signal history.",
+      "input": "captured/diagnostics-en.png",
+      "inputSHA256": "68bd157dc3012e578fad0077f4280a8d6a2f9476a970401b752d6796e06247e3",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 2798,
+        "height": 1664
+      },
+      "placement": {
+        "x": 347.03,
+        "y": 430,
+        "width": 2185.94,
+        "height": 1300,
+        "scale": 0.78125,
+        "enlarged": false
+      },
+      "output": "exports/en-US/03-diagnostics.png",
+      "outputSHA256": "1e8ed4b429637dcadc0fd4d2c365d76fb44a3f50a81d497b49f7870c77a1e709",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "zh-Hans",
+      "scene": "diagnostics",
+      "title": "信号变化，有迹可循。",
+      "input": "captured/diagnostics-zh.png",
+      "inputSHA256": "7640686bd159671c10dfcbc3c4cd83814b841ee4c0452b5a3c8d7f9f32a2b0b3",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 2798,
+        "height": 1664
+      },
+      "placement": {
+        "x": 347.03,
+        "y": 430,
+        "width": 2185.94,
+        "height": 1300,
+        "scale": 0.78125,
+        "enlarged": false
+      },
+      "output": "exports/zh-Hans/03-diagnostics.png",
+      "outputSHA256": "8b1e6c7ed74ba6f4e6a433e1015c6e434e4f6a523a01a3770a52be09bd950b7e",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "en-US",
+      "scene": "permissions",
+      "title": "Permissions, on your terms.",
+      "input": "captured/permissions-en.png",
+      "inputSHA256": "56f4eef359779d65974d61ef5af635f91caa3d45cd0404de5b80ae923bfd9138",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 1464,
+        "height": 1280
+      },
+      "placement": {
+        "x": 708,
+        "y": 440,
+        "width": 1464,
+        "height": 1280,
+        "scale": 1,
+        "enlarged": false
+      },
+      "output": "exports/en-US/04-permissions.png",
+      "outputSHA256": "64a57af8dd0ff460a007c273458d70d079819ddfe8a90d4db8f3d7eac892d8eb",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    },
+    {
+      "locale": "zh-Hans",
+      "scene": "permissions",
+      "title": "权限，由你掌握。",
+      "input": "captured/permissions-zh.png",
+      "inputSHA256": "1b7872e573e912bd4bd2fe6e029b0134f317a017ab2cde18ae9c2a8690c5f0c1",
+      "inputFormat": "png",
+      "inputMIME": "image/png",
+      "inputPixels": {
+        "width": 1464,
+        "height": 1280
+      },
+      "placement": {
+        "x": 708,
+        "y": 440,
+        "width": 1464,
+        "height": 1280,
+        "scale": 1,
+        "enlarged": false
+      },
+      "output": "exports/zh-Hans/04-permissions.png",
+      "outputSHA256": "1a58208bf868e9e649b2448d4e10abeecc78d4a5f65da61a26893adf68af31ce",
+      "pixels": {
+        "width": 2880,
+        "height": 1800,
+        "channels": 3,
+        "depth": "uchar",
+        "hasAlpha": false
+      },
+      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+    }
+  ]
+}

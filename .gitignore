@@ -2,6 +2,7 @@
 .build/
 Packages/LinkScopeKit/.build/
 DerivedData/
+DerivedData-*/
 build/
 dist/
 *.xcuserstate

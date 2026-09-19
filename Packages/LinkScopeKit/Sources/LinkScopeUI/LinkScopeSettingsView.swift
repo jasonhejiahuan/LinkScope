@@ -36,6 +36,10 @@ public struct LinkScopeSettingsView: View {
                 if let loginItemError {
                     Text(loginItemError).font(.caption).foregroundStyle(.red)
                 }
+                Link(
+                    L10n.string("settings.privacyPolicy", language: language),
+                    destination: URL(string: "https://apps.jasonstu.cc/linkscope/privacy")!
+                )
             }
             .formStyle(.grouped)
             .tabItem {

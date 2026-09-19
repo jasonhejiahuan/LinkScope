@@ -1,0 +1,31 @@
+{
+  "locale": "en-US",
+  "scene": "dashboard",
+  "title": "Your details. Your dashboard.",
+  "input": "captured/dashboard-en.png",
+  "inputSHA256": "fabddd8def18c9dfb2aadddfb05f125a8f4e519965975253d42bc1dfd19bbaf2",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 2798,
+    "height": 1664
+  },
+  "placement": {
+    "x": 347.03,
+    "y": 430,
+    "width": 2185.94,
+    "height": 1300,
+    "scale": 0.78125,
+    "enlarged": false
+  },
+  "output": "exports/en-US/02-dashboard.png",
+  "outputSHA256": "c08ce88345fe50e015342f579c7e956d11741b5aecb8d2ce05c3376207aed7be",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

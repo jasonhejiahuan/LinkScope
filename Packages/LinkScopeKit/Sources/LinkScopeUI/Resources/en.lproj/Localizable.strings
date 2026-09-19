@@ -83,6 +83,7 @@
 "settings.general" = "General";
 "settings.language" = "Interface language";
 "settings.launchAtLogin" = "Launch at login";
+"settings.privacyPolicy" = "Privacy Policy";
 "settings.storage" = "Storage";
 "settings.permissions" = "Permissions";
 "settings.edition" = "Edition";

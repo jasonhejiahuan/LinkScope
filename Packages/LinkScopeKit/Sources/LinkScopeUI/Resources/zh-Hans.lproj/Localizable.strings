@@ -83,6 +83,7 @@
 "settings.general" = "通用";
 "settings.language" = "界面语言";
 "settings.launchAtLogin" = "登录时启动";
+"settings.privacyPolicy" = "隐私政策";
 "settings.storage" = "存储";
 "settings.permissions" = "权限";
 "settings.edition" = "版本";

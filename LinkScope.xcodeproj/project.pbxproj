@@ -366,6 +366,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "LinkScope Lite DEBUG";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope Lite reads Bluetooth accessory state and parameters without controlling the accessory.";
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope.lite;
@@ -391,6 +392,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "LinkScope Lite";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "LinkScope Lite reads Bluetooth accessory state and parameters without controlling the accessory.";
 				PRODUCT_BUNDLE_IDENTIFIER = cc.jasonstu.linkscope.lite;

@@ -1,0 +1,31 @@
+{
+  "locale": "en-US",
+  "scene": "permissions",
+  "title": "Permissions, on your terms.",
+  "input": "captured/permissions-en.png",
+  "inputSHA256": "56f4eef359779d65974d61ef5af635f91caa3d45cd0404de5b80ae923bfd9138",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 1464,
+    "height": 1280
+  },
+  "placement": {
+    "x": 708,
+    "y": 440,
+    "width": 1464,
+    "height": 1280,
+    "scale": 1,
+    "enlarged": false
+  },
+  "output": "exports/en-US/04-permissions.png",
+  "outputSHA256": "64a57af8dd0ff460a007c273458d70d079819ddfe8a90d4db8f3d7eac892d8eb",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

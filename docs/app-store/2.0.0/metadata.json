@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "preparedDate": "2026-09-19",
+  "status": "PREPARATION_ONLY_NOT_SUBMITTED",
+  "locales": {
+    "en-US": {
+      "name": "LinkScope Lite",
+      "subtitle": "Bluetooth & Device Inspector",
+      "promotionalText": "See your Mac's accessories more clearly. Inspect available parameters, follow changes with diagnostics, and build dashboards around the details that matter.",
+      "description": "A clearer view of your Mac's accessories.\n\nLinkScope Lite brings device details, connection states, and system-reported parameters into one native Mac workspace. Explore what your Mac can see, follow changes over time, and build a dashboard for the details you care about.\n\nINSPECT THE DETAILS\nBrowse supported Bluetooth, input, audio, and game controller devices exposed by macOS. View raw parameters alongside their source, update time, and availability. Distinct states help you tell a missing reading from a permission issue or an unsupported value.\n\nMAKE THE WORKSPACE YOURS\nCreate named dashboards with six widget types: current value, availability status, time series, raw table, timeline, and provider health. Move and resize widgets, edit with the keyboard, and use Undo and Redo to refine your layout.\n\nDIAGNOSE ON DEMAND\nStart a diagnostic session for available sample-capable sources, including Bluetooth signal strength where supported. Choose a sampling interval and duration, review recorded gaps, compare sessions, and export the displayed readings as CSV. Sampling is started explicitly and can be stopped at any time.\n\nKEEP USEFUL CONTEXT\nCapture snapshots, review an event timeline, and import or export observation history as JSON. Save dashboard layouts as portable JSON documents. Set rules for parameter changes, availability, numeric thresholds, or provider status, with optional notifications.\n\nAT HOME ON YOUR MAC\nGet a quick status summary from the menu bar. Use Shortcuts to capture a snapshot or start, stop, and check a diagnostic session. Switch between English and Simplified Chinese in Settings.\n\nAvailability depends on your Mac, macOS version, connected accessories, and permissions. Some devices do not expose signal strength or battery information. LinkScope Lite observes system-reported information; it does not pair devices, change accessory settings, remap controls, or update firmware.\n\nEnable Saved History to retain observations and dashboards between launches. Without access to saved storage, the app continues in memory-only mode. Exported files can include device names and identifiers; review them before sharing.\n\nRequires macOS 15 or later. No app account is required.",
+      "keywords": "diagnostics,dashboard,signal,rssi,peripheral,monitor,hardware,timeline,json,csv",
+      "whatsNew": "Build a workspace around the details that matter.\n\n• Create named dashboards with six widget types and a flexible twelve-column layout.\n• Move and resize widgets with the pointer or keyboard, with Undo and Redo.\n• Explore current values, availability, time series, raw tables, timelines, and provider health in one place.\n• Import and export dashboard layouts as JSON. Unavailable sources stay in the layout with a clear explanation.\n• Manage Saved History, Bluetooth access, and notifications from a shared Permissions view.\n• Improved dashboard restoration after quitting and reopening the app, plus fixes for window startup.",
+      "supportURL": "https://apps.jasonstu.cc/linkscope",
+      "marketingURL": "https://apps.jasonstu.cc/linkscope",
+      "privacyPolicyURL": "https://apps.jasonstu.cc/linkscope/privacy",
+      "privacyChoicesURL": null
+    },
+    "zh-Hans": {
+      "name": "LinkScope Lite",
+      "subtitle": "蓝牙配件检查与自定义仪表盘",
+      "promotionalText": "更清楚地了解 Mac 配件。查看系统提供的参数，按需诊断信号变化，用自定义仪表盘集中呈现你关心的信息。",
+      "description": "看清 Mac 配件的每一份可用信息。\n\nLinkScope Lite 将设备信息、连接状态和系统提供的参数汇集到原生 Mac 工作区。查看当前状态，追踪变化，再把关心的数据整理成自己的仪表盘。\n\n深入查看配件\n浏览 macOS 能够识别的蓝牙、输入、音频和游戏控制器设备。检查原始参数，以及数据来源、更新时间和可用状态。没有读数、权限不足或系统不支持，都会明确显示。\n\n打造自己的工作区\n创建命名仪表盘，组合当前值、可用状态、时间序列、原始表格、时间线和数据源健康状态六类组件。支持拖动、调整大小、键盘编辑，以及撤销和重做。\n\n需要时，再开始诊断\n为支持采样的数据源创建诊断会话，包括系统可提供的蓝牙信号强度。选择采样间隔和时长，查看记录中的中断、对比不同会话，并将当前显示的读数导出为 CSV。采样由你主动开始，也可随时停止。\n\n保留有用的上下文\n捕获快照、查看事件时间线，通过 JSON 导入或导出观察历史，也可单独保存仪表盘布局。为参数变化、可用状态、数值阈值或数据源状态设置规则，并按需开启通知。\n\n融入 Mac 使用习惯\n从菜单栏快速查看概况，使用快捷指令捕获快照、开始或停止诊断、查询诊断状态。可在设置中切换英语和简体中文。\n\n可见设备与参数取决于 Mac、macOS 版本、连接的配件和权限。部分设备不会提供信号强度或电池信息。LinkScope Lite 用于观察系统提供的数据，不执行设备配对、配件设置修改、按键映射或固件更新。\n\n启用“已保存历史”后，可在重新启动应用后继续查看已保存的观察记录和仪表盘。无法访问保存空间时，应用会以内存模式继续运行。导出文件可能包含设备名称和标识符，分享前请先检查内容。\n\n需要 macOS 15 或更高版本，无需注册应用账户。",
+      "keywords": "连接状态,参数查看,信号强度,诊断工具,历史记录,数据导出,快捷指令",
+      "whatsNew": "围绕你关心的数据，打造自己的工作区。\n\n• 新增命名仪表盘，提供六类组件和灵活的十二列布局。\n• 使用鼠标或键盘移动组件、调整大小，支持撤销和重做。\n• 集中查看当前值、可用状态、时间序列、原始表格、时间线和数据源健康状态。\n• 通过 JSON 导入或导出仪表盘。暂不可用的数据源会保留在布局中，并显示原因。\n• 在统一的权限页面管理已保存历史、蓝牙访问与通知。\n• 改进正常退出后重新打开的仪表盘恢复体验，并修复窗口启动问题。",
+      "supportURL": "https://apps.jasonstu.cc/linkscope",
+      "marketingURL": "https://apps.jasonstu.cc/linkscope",
+      "privacyPolicyURL": "https://apps.jasonstu.cc/linkscope/privacy",
+      "privacyChoicesURL": null
+    }
+  },
+  "shared": {
+    "platform": "MAC_OS",
+    "bundleId": "cc.jasonstu.linkscope.lite",
+    "version": "2.0.0",
+    "build": "9",
+    "minimumOSVersion": "15.0",
+    "primaryLocale": "en-US",
+    "primaryCategory": "UTILITIES",
+    "secondaryCategory": null,
+    "copyrightDraft": "2026 JASON Studio",
+    "contentRightsDeclarationDraft": "DOES_NOT_USE_THIRD_PARTY_CONTENT",
+    "signInRequired": false,
+    "reviewNotes": "LinkScope Lite is a native, sandboxed macOS accessory inspection app. It uses public Apple frameworks to display information that macOS makes available. It does not pair or unpair devices, initiate connection or disconnection commands, change accessory settings, remap input, or update firmware. No app account or sign-in is required.\n\nReview steps:\n1. Launch the app. The first-run Permissions view offers Saved History, Bluetooth Accessories, and optional Notifications. Choose Enable for Saved History to retain history and dashboards, and Allow for Bluetooth Accessories to inspect permitted Bluetooth data. Continue opens the main workspace. Permissions are also available in Settings.\n2. Review Provider Status, then select an available device in the sidebar. Summary, Raw Parameters, and History display observed values and availability states. Hardware and permissions determine which devices and parameters appear.\n3. Open Dashboards and choose New Dashboard. Add a Provider Health or Timeline widget; these are useful without a specific accessory. Other widget types require an observed source. Use the Widget Inspector to select a source, then move or resize the widget. Quit normally and reopen to check saved layouts after Saved History has been enabled.\n4. To test active diagnostics, connect a supported Bluetooth accessory using macOS settings before opening Diagnostics. Choose New Diagnostic, select an available sample-capable source, and set an interval and duration. Bluetooth RSSI is available only when exposed by the connected device and system. The app intentionally shows unavailable states if data is not reported. Stop the session, inspect its readings, and optionally export CSV. Lack of compatible hardware does not prevent reviewing the rest of the app.\n5. The main toolbar supports snapshot capture and JSON import/export. Dashboards have their own JSON import/export controls. The menu bar and Shortcuts provide additional snapshot and diagnostic actions.\n\nThe app does not scan for arbitrary nearby BLE devices. CoreBluetooth is used for controller state and explicit Bluetooth authorization. Idle providers use system events; diagnostic sampling is explicitly started by the user.\n\nIf saved storage cannot be enabled, the app continues in memory-only mode and explains this in Permissions. Optional notifications are requested only by user action. User-selected exports may contain device names, identifiers, raw observations, and history.\n\nSupport and product information: https://apps.jasonstu.cc/linkscope\nPrivacy policy: https://apps.jasonstu.cc/linkscope/privacy",
+    "reviewAttachment": null,
+    "licenseAgreementRecommendation": "Apple Standard EULA",
+    "releaseMethodRecommendation": "MANUAL",
+    "distributionRecommendation": "PUBLIC",
+    "whatsNewApplicability": "Use only if this is an update to an existing App Store release; omit for the first App Store version.",
+    "appPrivacy": {
+      "declaration": "DATA_NOT_COLLECTED",
+      "collectsData": false,
+      "tracking": false,
+      "collectedDataTypes": [],
+      "linkedDataTypes": [],
+      "unlinkedDataTypes": [],
+      "status": "AUDITED_DRAFT_NOT_SUBMITTED",
+      "evidence": "privacy-and-encryption.md: current app and dependencies have no identified developer/third-party off-device collection path. Local processing and user-selected exports are not an automatic collection disclosure.",
+      "finalConfirmation": "Confirm the distributed binary and actual developer operations remain consistent before saving these answers in App Store Connect."
+    },
+    "exportCompliance": {
+      "usesEncryption": true,
+      "appleOperatingSystemOnly": true,
+      "usesNonExemptEncryption": false,
+      "proprietaryCryptographicAlgorithms": false,
+      "additionalStandardCryptographicImplementations": false,
+      "encryptionDocumentationRecommendation": "NONE_REQUIRED_FOR_CURRENT_OS_ONLY_ROUTE",
+      "exportComplianceCode": null,
+      "status": "AUDITED_DRAFT_NOT_SUBMITTED",
+      "evidence": "See privacy-and-encryption.md. Apple CryptoKit AES-256-GCM, HKDF-SHA256 and HMAC-SHA256; Apple Security/Keychain. A prior local Lite Release archive confirms ITSAppUsesNonExemptEncryption=false.",
+      "finalConfirmation": "Recheck the final local archive and the eventual App Store-distribution archive. No App Store answers or government classification have been submitted."
+    },
+    "ageRatingDraft": {
+      "status": "Draft based on product content; complete the live questionnaire and use Apple-calculated regional ratings.",
+      "parentalControls": false,
+      "ageAssurance": false,
+      "unrestrictedWebAccess": false,
+      "userGeneratedContent": false,
+      "messagingAndChat": false,
+      "advertising": false,
+      "profanityOrCrudeHumor": "NONE",
+      "horrorFearThemes": "NONE",
+      "alcoholTobaccoDrugUseOrReferences": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "healthOrWellnessTopics": false,
+      "matureSuggestiveThemes": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "graphicSexualContentOrNudity": "NONE",
+      "cartoonOrFantasyViolence": "NONE",
+      "realisticViolence": "NONE",
+      "prolongedGraphicOrSadisticRealisticViolence": "NONE",
+      "gunsOrOtherWeapons": "NONE",
+      "simulatedGambling": "NONE",
+      "contests": "NONE",
+      "gambling": false,
+      "lootBoxes": false,
+      "madeForKids": false,
+      "ageOverride": null,
+      "ageSuitabilityURL": null,
+      "expectedGlobalRating": "4+ (subject to Apple calculation)",
+      "socialMedia": false
+    },
+    "accessibility": {
+      "declarations": null,
+      "accessibilityURL": null,
+      "status": "Do not declare support before completing the applicable Apple evaluation criteria."
+    },
+    "regulatedMedicalDeviceStatusDraft": "NOT_A_REGULATED_MEDICAL_DEVICE",
+    "screenshots": {
+      "format": "PNG RGB without alpha",
+      "width": 2880,
+      "height": 1800,
+      "minimumPerLocale": 1,
+      "maximumPerLocale": 10,
+      "status": "Four scenes per locale from user-supplied native PNG captures: providers, dashboard, historical diagnostics, permissions. All eight exports visually reviewed on 2026-09-19; original images embedded intact without enlargement. Historical readings do not establish completion of a new sampling test.",
+      "plannedCountPerLocale": 4,
+      "path": "Design/AppStore/2.0.0",
+      "scenes": [
+        "providers",
+        "dashboard",
+        "diagnostics",
+        "permissions"
+      ]
+    },
+    "appPreview": {
+      "required": false,
+      "status": "Not requested"
+    },
+    "websiteStatus": {
+      "httpStatusChecked": "200 for support/marketing and privacy URLs (2026-09-19)",
+      "privacyBody": "Existing short policy dated 2026-08-20 needs the reviewed version before submission.",
+      "supportContact": "https://apps.jasonstu.cc/linkscope/support returns HTTP 200 and provides a working GitHub Issues support channel. User-selected Support URL remains the product entry page."
+    },
+    "releaseEvidence": {
+      "testsPassed": 53,
+      "debugVerification": "script/check.sh passed all 53 tests, including two dashboard regressions, plus Full/Lite Debug builds and signature checks.",
+      "finalLocalArchivePath": "build/AppStore/LinkScopeLite-2.0.0-9-final.xcarchive",
+      "finalLocalArchiveStatus": "ARCHIVE_SUCCEEDED_LOCAL_DEVELOPMENT",
+      "signingScope": "Local Release archive uses Apple Development signing. App Store distribution signing and upload acceptance are not completed. See real-device-qa.md for final package verification.",
+      "bluetoothVerification": "Bluetooth Allowed was observed. In both Debug and the final Release app, repeated Settings > Permissions open/close checks left IOBluetooth and CoreBluetooth Running. All seven public providers were Running in the final Release check.",
+      "diagnosticsVerification": "Reading Diagnostics still crashes the native computer-use helper. Active diagnostic sampling and RSSI readings remain unverified in this run.",
+      "status": "Local tests, Debug build/signature checks, final Release archive creation, and scoped Release permission/provider checks succeeded. This is not a claim of complete real-device acceptance or App Store processing."
+    },
+    "taxCategoryRecommendation": "App Store Software (verify in the account)",
+    "resetOverviewRatingRecommendation": "Do not reset an existing rating unless the account holder chooses to; not applicable to an initial release.",
+    "routingAppCoverageFile": null,
+    "routingAppCoverageFileApplicability": "Not a routing app; no coverage file required for the current functionality.",
+    "appIcon": {
+      "source": "Application bundle icon",
+      "status": "Use the final Lite distribution archive icon; do not upload the Full or Debug app."
+    }
+  },
+  "accountPending": {
+    "existingAppRecord": {
+      "value": null,
+      "requiredAction": "Check whether LinkScope Lite already has an App Store Connect record and preserve its Apple ID, SKU, and primary language."
+    },
+    "appleId": {
+      "value": null,
+      "requiredAction": "Read the real Apple-generated identifier from App Store Connect."
+    },
+    "sku": {
+      "value": null,
+      "suggestedValue": "linkscope-lite-macos",
+      "requiredAction": "Use the existing SKU; choose this draft only when creating a new record."
+    },
+    "nameAvailability": {
+      "value": null,
+      "requiredAction": "Confirm LinkScope Lite is available for this developer account."
+    },
+    "sellerAndTeam": {
+      "value": null,
+      "requiredAction": "Verify legal seller, developer display name, active membership, App ID, signing team, and provisioning profile."
+    },
+    "copyright": {
+      "value": null,
+      "suggestedValue": "2026 JASON Studio",
+      "requiredAction": "Confirm the actual rights holder and year rights were obtained."
+    },
+    "reviewContact": {
+      "firstName": null,
+      "lastName": null,
+      "email": null,
+      "phone": null,
+      "requiredAction": "Provide a real review contact and phone in international +country-code format."
+    },
+    "publicSupportContact": {
+      "value": "GitHub Issues via https://apps.jasonstu.cc/linkscope/support",
+      "requiredAction": "Recheck that the submitted product Support URL still exposes the support route and working contact channel. An App Review contact is separately required."
+    },
+    "price": {
+      "value": "FREE",
+      "status": "USER_CONFIRMED_NOT_SAVED_IN_APP_STORE_CONNECT",
+      "basis": "The user explicitly confirmed that this release will be a free app.",
+      "requiredAction": "Select Free in App Store Connect for this release and verify that the saved pricing reflects this choice. The user decision is confirmed; the account setting has not been saved."
+    },
+    "availability": {
+      "territories": null,
+      "preOrder": null,
+      "requiredAction": "Confirm intended countries/regions and release timing."
+    },
+    "dsaTraderStatus": {
+      "value": null,
+      "requiredAction": "Account holder must assess and declare trader status; verify any required public contact details."
+    },
+    "agreementsTaxBanking": {
+      "value": null,
+      "requiredAction": "Verify current agreements and applicable tax/banking setup; paid distribution requires the relevant agreement."
+    },
+    "regionalCompliance": {
+      "value": null,
+      "requiredAction": "Complete requirements shown for the selected storefronts when applicable."
+    },
+    "privacyPolicyPublication": {
+      "value": null,
+      "requiredAction": "Publish the reviewed policy at the user-provided URL; its current short text is not the new policy."
+    },
+    "finalAppStoreBuild": {
+      "value": null,
+      "requiredAction": "Use the successfully built final local Release archive as the preparation baseline, complete package checks listed in real-device-qa.md, obtain App Store distribution signing, confirm build-number availability, and complete successful App Store processing. The local Apple Development archive is not upload acceptance.",
+      "localArchivePath": "build/AppStore/LinkScopeLite-2.0.0-9-final.xcarchive"
+    },
+    "appPrivacyConfirmation": {
+      "value": null,
+      "recommendedValue": "DATA_NOT_COLLECTED",
+      "requiredAction": "Use the completed privacy audit draft, confirm the final binary and actual operational practices, then save the genuine answers in App Store Connect."
+    },
+    "exportComplianceConfirmation": {
+      "value": null,
+      "recommendedValue": "Apple operating-system-only encryption; usesNonExemptEncryption=false",
+      "requiredAction": "Verify the actual current questionnaire, final binary, and selected territories. This package is an unsaved draft and does not assign a government export classification."
+    }
+  }
+}

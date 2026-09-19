@@ -229,6 +229,20 @@ public struct DashboardDocument: Codable, Hashable, Identifiable, Sendable {
         self.extensionFields = extensionFields
     }
 
+    /// Applies only the edited field to the current widget. Inspector callbacks
+    /// can outlive the snapshot from which their controls were rendered.
+    public mutating func apply(_ edit: DashboardWidget.ContentEdit, toWidget id: UUID) {
+        guard schemaVersion <= Self.currentSchemaVersion,
+              let index = widgets.firstIndex(where: { $0.id == id }),
+              widgets[index].opaqueConfiguration == nil else { return }
+        switch edit {
+        case let .sourceIDs(sourceIDs):
+            widgets[index].sourceIDs = sourceIDs
+        case let .configurationValue(key, value):
+            widgets[index].configuration[key] = value
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: DashboardCodingKey.self)
         schemaVersion = try container.decodeIfPresent(
@@ -271,6 +285,11 @@ public struct DashboardDocument: Codable, Hashable, Identifiable, Sendable {
 }
 
 public struct DashboardWidget: Codable, Hashable, Identifiable, Sendable {
+    public enum ContentEdit: Sendable {
+        case sourceIDs([WidgetSourceID])
+        case configurationValue(key: String, value: RawValue?)
+    }
+
     public struct Kind: RawRepresentable, Codable, Hashable, Sendable {
         public let rawValue: String
 

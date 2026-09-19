@@ -55,10 +55,10 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
             return
         }
 
-        emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .starting)))
         let didStart = await MainActor.run {
             guard !self.isStarted else { return false }
             self.isStarted = true
+            self.emitter.yield(.status(ProviderStatus(providerID: self.descriptor.id, state: .starting)))
             self.connectNotification = IOBluetoothDevice.register(
                 forConnectNotifications: self,
                 selector: #selector(self.deviceConnected(_:device:))

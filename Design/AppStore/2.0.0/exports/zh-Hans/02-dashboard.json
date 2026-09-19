@@ -1,0 +1,31 @@
+{
+  "locale": "zh-Hans",
+  "scene": "dashboard",
+  "title": "关心的数据，按你的方式呈现。",
+  "input": "captured/dashboard-zh.png",
+  "inputSHA256": "96c7587df44e3c4fc3f027d9688616bc2faeb825a9d81d305677749494bb9e0e",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 2798,
+    "height": 1664
+  },
+  "placement": {
+    "x": 347.03,
+    "y": 430,
+    "width": 2185.94,
+    "height": 1300,
+    "scale": 0.78125,
+    "enlarged": false
+  },
+  "output": "exports/zh-Hans/02-dashboard.png",
+  "outputSHA256": "05c6e92fd3453403a850e7e73a2f14a1749ca7067f2fb5439420fc8e398e1e5d",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

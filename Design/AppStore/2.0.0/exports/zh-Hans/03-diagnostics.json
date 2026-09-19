@@ -1,0 +1,31 @@
+{
+  "locale": "zh-Hans",
+  "scene": "diagnostics",
+  "title": "信号变化，有迹可循。",
+  "input": "captured/diagnostics-zh.png",
+  "inputSHA256": "7640686bd159671c10dfcbc3c4cd83814b841ee4c0452b5a3c8d7f9f32a2b0b3",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 2798,
+    "height": 1664
+  },
+  "placement": {
+    "x": 347.03,
+    "y": 430,
+    "width": 2185.94,
+    "height": 1300,
+    "scale": 0.78125,
+    "enlarged": false
+  },
+  "output": "exports/zh-Hans/03-diagnostics.png",
+  "outputSHA256": "8b1e6c7ed74ba6f4e6a433e1015c6e434e4f6a523a01a3770a52be09bd950b7e",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

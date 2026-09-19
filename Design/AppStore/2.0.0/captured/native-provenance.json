@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-19",
+  "shots": [
+    {
+      "capture": "providers-en.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.40.53.png",
+      "sha256": "c733236955094b2219d50960fa8892ec189880ff19bb7d82dbe393b9f186102a",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "providers-zh.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.39.06.png",
+      "sha256": "88a2a2d29d9132f31bdf09f04cc921485a7c8476a6c4cbc675e1e1aa1927d04c",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "dashboard-en.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.40.49.png",
+      "sha256": "fabddd8def18c9dfb2aadddfb05f125a8f4e519965975253d42bc1dfd19bbaf2",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "dashboard-zh.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.39.03.png",
+      "sha256": "96c7587df44e3c4fc3f027d9688616bc2faeb825a9d81d305677749494bb9e0e",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "diagnostics-en.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.41.00.png",
+      "sha256": "68bd157dc3012e578fad0077f4280a8d6a2f9476a970401b752d6796e06247e3",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "diagnostics-zh.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.39.13.png",
+      "sha256": "7640686bd159671c10dfcbc3c4cd83814b841ee4c0452b5a3c8d7f9f32a2b0b3",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "permissions-en.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.42.21.png",
+      "sha256": "56f4eef359779d65974d61ef5af635f91caa3d45cd0404de5b80ae923bfd9138",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    },
+    {
+      "capture": "permissions-zh.png",
+      "originalFilename": "Screenshot 2026-09-19 at 17.38.29.png",
+      "sha256": "1b7872e573e912bd4bd2fe6e029b0134f317a017ab2cde18ae9c2a8690c5f0c1",
+      "source": "User-supplied native macOS window capture; original bytes preserved"
+    }
+  ]
+}

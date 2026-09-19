@@ -1,0 +1,31 @@
+{
+  "locale": "en-US",
+  "scene": "providers",
+  "title": "See every source clearly.",
+  "input": "captured/providers-en.png",
+  "inputSHA256": "c733236955094b2219d50960fa8892ec189880ff19bb7d82dbe393b9f186102a",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 2798,
+    "height": 1664
+  },
+  "placement": {
+    "x": 347.03,
+    "y": 430,
+    "width": 2185.94,
+    "height": 1300,
+    "scale": 0.78125,
+    "enlarged": false
+  },
+  "output": "exports/en-US/01-providers.png",
+  "outputSHA256": "6f0482413ec5f3a6e7bf4cfee1c3d5612343ef2c233033f444694e9e785ff7a6",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

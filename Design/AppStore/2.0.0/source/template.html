@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{LOCALE}}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE_XML}} · LinkScope Lite</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: #020305; }
+  body { display: grid; place-items: center; overflow: hidden; }
+  .viewport { width: 2880px; height: 1800px; transform-origin: top left; }
+  .canvas { position: relative; width: 2880px; height: 1800px; overflow: hidden;
+    color: #f5f5f7; font-family: 'Helvetica Neue', Helvetica, 'Hiragino Sans GB', sans-serif;
+    background: radial-gradient(ellipse 69% 69% at 50% 69%, #151922 0%, #0b0d13 53%, #050609 100%); }
+  .canvas::before { content: ''; position: absolute; left: 90px; top: 440px; width: 2700px; height: 1380px;
+    background: radial-gradient(ellipse, rgb(129 149 181 / 6.5%), transparent 70%); }
+  .brand, .platform { position: absolute; top: 75px; margin: 0; font-size: 32px; line-height: 40px; font-weight: 500; }
+  .brand { left: 146px; color: #dce0e7; letter-spacing: .3px; }
+  .platform { right: 146px; color: #8a909c; font-size: 29px; font-weight: 400; letter-spacing: .5px; }
+  h1 { position: absolute; left: 100px; top: 157px; width: 2680px; margin: 0; text-align: center;
+    font-size: {{TITLE_SIZE}}px; font-weight: 600; letter-spacing: {{TITLE_SPACING}}px; line-height: 1.14;
+    background: linear-gradient(#fff, #d8dce4); color: transparent; background-clip: text; }
+  .subtitle { position: absolute; left: 100px; top: 329px; width: 2680px; margin: 0; text-align: center;
+    color: #a6acb8; font-size: {{SUBTITLE_SIZE}}px; line-height: 1.25; letter-spacing: .1px; }
+  .frame { position: absolute; left: {{FRAME_X}}px; top: {{FRAME_Y}}px; width: {{FRAME_WIDTH}}px; height: {{FRAME_HEIGHT}}px;
+    border: 1.5px solid rgb(215 225 242 / 11%); border-radius: 26px; background: rgb(255 255 255 / 1.6%);
+    box-shadow: 0 30px 75px rgb(0 0 0 / 56%); opacity: {{FRAME_OPACITY}}; }
+  .capture { position: absolute; left: {{IMAGE_X}}px; top: {{IMAGE_Y}}px; width: {{IMAGE_WIDTH}}px; height: {{IMAGE_HEIGHT}}px;
+    object-fit: contain; }
+</style>
+<div class="viewport"><main class="canvas" aria-label="LinkScope Lite App Store screenshot">
+  <p class="brand">{{PRODUCT_XML}}</p><p class="platform">{{PLATFORM_XML}}</p>
+  <h1>{{TITLE_XML}}</h1><p class="subtitle">{{SUBTITLE_XML}}</p>
+  <div class="frame" aria-hidden="true"></div>
+  <img class="capture" src="{{SCREENSHOT_DATA_URI}}" alt="Complete LinkScope Lite window capture">
+</main></div>
+<script>
+  // This HTML is a visual editing companion. SVG -> sharp is the authoritative PNG render.
+  const viewport = document.querySelector('.viewport');
+  function fit() {
+    const scale = Math.min(innerWidth / 2880, innerHeight / 1800);
+    viewport.style.transform = `scale(${scale})`;
+    viewport.style.marginRight = `${2880 * (scale - 1)}px`;
+    viewport.style.marginBottom = `${1800 * (scale - 1)}px`;
+  }
+  addEventListener('resize', fit); fit();
+</script>
+</html>

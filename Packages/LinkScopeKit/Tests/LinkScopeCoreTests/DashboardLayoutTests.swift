@@ -259,6 +259,89 @@ private func dashboardWidget(
     #expect(DashboardLayoutEngine.isCollisionFree(result))
 }
 
+@Test func dashboardDelayedInspectorEditsPreserveResizingAndOtherFieldsWhenDuplicating() throws {
+    let original = DashboardWidget(
+        id: firstDashboardWidgetID,
+        kind: .providerHealth,
+        sourceIDs: [WidgetSourceID(rawValue: "initial-provider")],
+        placement: DashboardLayoutEngine.defaultSize(for: .providerHealth),
+        configuration: ["precision": .signedInt(2), "futureSetting": .bool(true)],
+        extensionFields: ["futureWidgetField": .string("preserved")]
+    )
+    var dashboard = DashboardDocument(name: "Delayed Inspector", widgets: [original])
+
+    // These edits are created from the initial inspector, before three clicks
+    // on Wider. Submitting later must not restore that inspector's width of 3.
+    let titleEdit = DashboardWidget.ContentEdit.configurationValue(key: "title", value: .string("Audio"))
+    let sourceEdit = DashboardWidget.ContentEdit.sourceIDs([WidgetSourceID(rawValue: "audio-provider")])
+    let precisionEdit = DashboardWidget.ContentEdit.configurationValue(key: "precision", value: .signedInt(4))
+    for _ in 0..<3 {
+        dashboard = try DashboardLayoutEngine.resizingWidget(
+            id: original.id,
+            direction: .wider,
+            in: dashboard
+        )
+    }
+    dashboard.apply(precisionEdit, toWidget: original.id)
+    dashboard.apply(titleEdit, toWidget: original.id)
+    dashboard.apply(sourceEdit, toWidget: original.id)
+
+    let duplicateID = secondDashboardWidgetID
+    dashboard = try DashboardLayoutEngine.duplicatingWidget(
+        id: original.id,
+        newID: duplicateID,
+        in: dashboard
+    )
+    #expect(dashboard.widgets.count == 2)
+    for widget in dashboard.widgets {
+        #expect(widget.placement.columnSpan == 6)
+        #expect(widget.placement.rowSpan == original.placement.rowSpan)
+        #expect(widget.configuration["title"] == .string("Audio"))
+        #expect(widget.configuration["precision"] == .signedInt(4))
+        #expect(widget.configuration["futureSetting"] == .bool(true))
+        #expect(widget.sourceIDs == [WidgetSourceID(rawValue: "audio-provider")])
+        #expect(widget.extensionFields == original.extensionFields)
+    }
+    #expect(DashboardLayoutEngine.isCollisionFree(dashboard))
+
+    // Clearing the title is also a field edit, and must leave the duplicate
+    // and the original's other configuration and placement untouched.
+    let beforeClearing = dashboard
+    dashboard.apply(.configurationValue(key: "title", value: nil), toWidget: original.id)
+    #expect(dashboard.widgets[0].configuration["title"] == nil)
+    #expect(dashboard.widgets[0].configuration["precision"] == .signedInt(4))
+    #expect(dashboard.widgets[0].placement == beforeClearing.widgets[0].placement)
+    #expect(dashboard.widgets[1] == beforeClearing.widgets[1])
+}
+
+@Test func dashboardDelayedContentEditDoesNotChangeDeletedOrReadOnlyWidget() {
+    let edit = DashboardWidget.ContentEdit.configurationValue(key: "title", value: .string("Audio"))
+    let widget = dashboardWidget(
+        id: firstDashboardWidgetID,
+        placement: GridPlacement(column: 0, row: 0, columnSpan: 3, rowSpan: 2)
+    )
+    var deleted = DashboardDocument(name: "Deleted")
+    let beforeDeleted = deleted
+    deleted.apply(edit, toWidget: widget.id)
+    #expect(deleted == beforeDeleted)
+
+    var future = DashboardDocument(
+        schemaVersion: DashboardDocument.currentSchemaVersion + 1,
+        name: "Future",
+        widgets: [widget]
+    )
+    let beforeFuture = future
+    future.apply(edit, toWidget: widget.id)
+    #expect(future == beforeFuture)
+
+    var opaqueWidget = widget
+    opaqueWidget.opaqueConfiguration = .string("future-format")
+    var opaque = DashboardDocument(name: "Opaque", widgets: [opaqueWidget])
+    let beforeOpaque = opaque
+    opaque.apply(edit, toWidget: widget.id)
+    #expect(opaque == beforeOpaque)
+}
+
 @Test func dashboardDecimatorIsBoundedDeterministicAndPreservesAVisibleSpike() {
     let sourceID = WidgetSourceID(rawValue: "fixture-source")
     let start = Date(timeIntervalSince1970: 1_700_000_000)

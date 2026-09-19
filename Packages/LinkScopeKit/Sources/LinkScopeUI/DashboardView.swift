@@ -58,7 +58,7 @@ struct DashboardView: View {
                     },
                     importDashboard: { importing = true }
                 )
-                .frame(minWidth: 130, idealWidth: 190, maxWidth: 260)
+                .frame(minWidth: 190, idealWidth: 190, maxWidth: 260)
 
                 Group {
                     if let dashboard = selectedDashboard {
@@ -93,7 +93,7 @@ struct DashboardView: View {
                     duplicateWidget: duplicateSelectedWidget,
                     deleteWidget: deleteSelectedWidget
                 )
-                .frame(minWidth: 180, idealWidth: 240, maxWidth: 300)
+                .frame(minWidth: 240, idealWidth: 240, maxWidth: 300)
             }
         }
         .navigationTitle(L10n.string("dashboard.title", language: language))
@@ -291,11 +291,14 @@ struct DashboardView: View {
         selectedWidgetID = widget.id
     }
 
-    private func updateWidget(_ widget: DashboardWidget, actionName: String) {
-        guard var dashboard = selectedDashboard, !selectedDashboardIsReadOnly,
-              let index = dashboard.widgets.firstIndex(where: { $0.id == widget.id }) else { return }
+    private func updateWidget(
+        id: UUID,
+        edit: DashboardWidget.ContentEdit,
+        actionName: String
+    ) {
+        guard var dashboard = selectedDashboard, !selectedDashboardIsReadOnly else { return }
         let previous = dashboard
-        dashboard.widgets[index] = widget
+        dashboard.apply(edit, toWidget: id)
         apply(dashboard, replacing: previous, actionName: actionName)
     }
 
@@ -1038,7 +1041,7 @@ private struct DashboardInspectorView: View {
     let widget: DashboardWidget?
     let isReadOnly: Bool
     let sourceOptions: [DashboardSourceOption]
-    let updateWidget: (DashboardWidget, String) -> Void
+    let updateWidget: (UUID, DashboardWidget.ContentEdit, String) -> Void
     let moveWidget: (Int, Int) -> Void
     let resizeWidget: (Int, Int) -> Void
     let duplicateWidget: () -> Void
@@ -1193,9 +1196,11 @@ private struct DashboardInspectorView: View {
             get: { widget.sourceIDs.first },
             set: { newValue in
                 guard !contentIsReadOnly(widget) else { return }
-                var updated = widget
-                updated.sourceIDs = newValue.map { [$0] } ?? []
-                updateWidget(updated, L10n.string("dashboard.undo.configureWidget"))
+                updateWidget(
+                    widget.id,
+                    .sourceIDs(newValue.map { [$0] } ?? []),
+                    L10n.string("dashboard.undo.configureWidget")
+                )
             }
         )
     }
@@ -1205,9 +1210,11 @@ private struct DashboardInspectorView: View {
             get: { DashboardWidgetPresentation.precision(for: widget) },
             set: { value in
                 guard !contentIsReadOnly(widget) else { return }
-                var updated = widget
-                updated.configuration["precision"] = .signedInt(Int64(value))
-                updateWidget(updated, L10n.string("dashboard.undo.configureWidget"))
+                updateWidget(
+                    widget.id,
+                    .configurationValue(key: "precision", value: .signedInt(Int64(value))),
+                    L10n.string("dashboard.undo.configureWidget")
+                )
             }
         )
     }
@@ -1215,14 +1222,11 @@ private struct DashboardInspectorView: View {
     private func commitTitle(_ widget: DashboardWidget) {
         guard !contentIsReadOnly(widget) else { return }
         let trimmed = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed != DashboardWidgetPresentation.customTitle(for: widget) else { return }
-        var updated = widget
-        if trimmed.isEmpty {
-            updated.configuration.removeValue(forKey: "title")
-        } else {
-            updated.configuration["title"] = .string(trimmed)
-        }
-        updateWidget(updated, L10n.string("dashboard.undo.configureWidget"))
+        updateWidget(
+            widget.id,
+            .configurationValue(key: "title", value: trimmed.isEmpty ? nil : .string(trimmed)),
+            L10n.string("dashboard.undo.configureWidget")
+        )
     }
 
     private func contentIsReadOnly(_ widget: DashboardWidget) -> Bool {

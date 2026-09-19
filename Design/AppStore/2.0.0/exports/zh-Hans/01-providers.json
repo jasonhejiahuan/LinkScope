@@ -1,0 +1,31 @@
+{
+  "locale": "zh-Hans",
+  "scene": "providers",
+  "title": "数据来源，一目了然。",
+  "input": "captured/providers-zh.png",
+  "inputSHA256": "88a2a2d29d9132f31bdf09f04cc921485a7c8476a6c4cbc675e1e1aa1927d04c",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 2798,
+    "height": 1664
+  },
+  "placement": {
+    "x": 347.03,
+    "y": 430,
+    "width": 2185.94,
+    "height": 1300,
+    "scale": 0.78125,
+    "enlarged": false
+  },
+  "output": "exports/zh-Hans/01-providers.png",
+  "outputSHA256": "8373d2e8d280700a761f746f6056ce07449f0013153227de827e80b216025e9b",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

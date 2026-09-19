@@ -1,0 +1,31 @@
+{
+  "locale": "en-US",
+  "scene": "diagnostics",
+  "title": "Review the signal history.",
+  "input": "captured/diagnostics-en.png",
+  "inputSHA256": "68bd157dc3012e578fad0077f4280a8d6a2f9476a970401b752d6796e06247e3",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 2798,
+    "height": 1664
+  },
+  "placement": {
+    "x": 347.03,
+    "y": 430,
+    "width": 2185.94,
+    "height": 1300,
+    "scale": 0.78125,
+    "enlarged": false
+  },
+  "output": "exports/en-US/03-diagnostics.png",
+  "outputSHA256": "1e8ed4b429637dcadc0fd4d2c365d76fb44a3f50a81d497b49f7870c77a1e709",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

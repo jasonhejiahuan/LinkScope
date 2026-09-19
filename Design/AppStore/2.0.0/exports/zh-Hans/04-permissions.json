@@ -1,0 +1,31 @@
+{
+  "locale": "zh-Hans",
+  "scene": "permissions",
+  "title": "权限，由你掌握。",
+  "input": "captured/permissions-zh.png",
+  "inputSHA256": "1b7872e573e912bd4bd2fe6e029b0134f317a017ab2cde18ae9c2a8690c5f0c1",
+  "inputFormat": "png",
+  "inputMIME": "image/png",
+  "inputPixels": {
+    "width": 1464,
+    "height": 1280
+  },
+  "placement": {
+    "x": 708,
+    "y": 440,
+    "width": 1464,
+    "height": 1280,
+    "scale": 1,
+    "enlarged": false
+  },
+  "output": "exports/zh-Hans/04-permissions.png",
+  "outputSHA256": "1a58208bf868e9e649b2448d4e10abeecc78d4a5f65da61a26893adf68af31ce",
+  "pixels": {
+    "width": 2880,
+    "height": 1800,
+    "channels": 3,
+    "depth": "uchar",
+    "hasAlpha": false
+  },
+  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+}

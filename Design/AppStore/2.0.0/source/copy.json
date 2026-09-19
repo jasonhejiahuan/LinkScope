@@ -1,0 +1,73 @@
+{
+  "canvas": {
+    "width": 2880,
+    "height": 1800,
+    "background": "#050609"
+  },
+  "productName": "LinkScope Lite",
+  "platformLabel": "For Mac",
+  "locales": {
+    "en-US": {
+      "captureSuffix": "en",
+      "headlineSize": 112,
+      "subtitleSize": 38,
+      "scenes": [
+        {
+          "id": "providers",
+          "number": "01",
+          "title": "See every source clearly.",
+          "subtitle": "Independent providers. Explicit availability."
+        },
+        {
+          "id": "dashboard",
+          "number": "02",
+          "title": "Your details. Your dashboard.",
+          "subtitle": "Arrange a workspace around what matters."
+        },
+        {
+          "id": "diagnostics",
+          "number": "03",
+          "title": "Review the signal history.",
+          "subtitle": "Inspect recorded readings, gaps, and trends."
+        },
+        {
+          "id": "permissions",
+          "number": "04",
+          "title": "Permissions, on your terms.",
+          "subtitle": "Review access. Keep saved history on your Mac."
+        }
+      ]
+    },
+    "zh-Hans": {
+      "captureSuffix": "zh",
+      "headlineSize": 103,
+      "subtitleSize": 38,
+      "scenes": [
+        {
+          "id": "providers",
+          "number": "01",
+          "title": "数据来源，一目了然。",
+          "subtitle": "独立的数据源，明确的可用状态。"
+        },
+        {
+          "id": "dashboard",
+          "number": "02",
+          "title": "关心的数据，按你的方式呈现。",
+          "subtitle": "把重要信息，整理成自己的工作区。"
+        },
+        {
+          "id": "diagnostics",
+          "number": "03",
+          "title": "信号变化，有迹可循。",
+          "subtitle": "查看已记录的读数、中断与趋势。"
+        },
+        {
+          "id": "permissions",
+          "number": "04",
+          "title": "权限，由你掌握。",
+          "subtitle": "清楚了解每项授权，在本机保留历史。"
+        }
+      ]
+    }
+  }
+}

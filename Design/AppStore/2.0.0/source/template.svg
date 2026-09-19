@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2880" height="1800" viewBox="0 0 2880 1800" role="img" aria-labelledby="title description">
+  <title id="title">{{TITLE_XML}}</title>
+  <desc id="description">{{SUBTITLE_XML}} A complete, unretouched capture of the LinkScope Lite window.</desc>
+  <defs>
+    <radialGradient id="stage" cx="50%" cy="69%" r="69%">
+      <stop offset="0%" stop-color="#151922"/>
+      <stop offset="53%" stop-color="#0b0d13"/>
+      <stop offset="100%" stop-color="#050609"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8195b5" stop-opacity="0.065"/>
+      <stop offset="100%" stop-color="#8195b5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#d8dce4"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d7e1f2" stop-opacity="0.18"/>
+      <stop offset="38%" stop-color="#d7e1f2" stop-opacity="0.045"/>
+      <stop offset="100%" stop-color="#d7e1f2" stop-opacity="0.10"/>
+    </linearGradient>
+    <filter id="windowShadow" x="-15%" y="-20%" width="130%" height="150%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+  </defs>
+
+  <!-- The stage and copy are editable vector design. The captured interface is one intact image. -->
+  <rect width="2880" height="1800" fill="#050609"/>
+  <rect width="2880" height="1800" fill="url(#stage)"/>
+  <ellipse cx="1440" cy="1130" rx="1350" ry="690" fill="url(#glow)"/>
+
+  <g font-family="Helvetica Neue, Helvetica, Hiragino Sans GB, sans-serif">
+    <text x="146" y="109" font-size="32" font-weight="500" fill="#dce0e7" letter-spacing="0.3">{{PRODUCT_XML}}</text>
+    <text x="2734" y="109" text-anchor="end" font-size="29" font-weight="400" fill="#8a909c" letter-spacing="0.5">{{PLATFORM_XML}}</text>
+
+    <text x="1440" y="276" text-anchor="middle" font-size="{{TITLE_SIZE}}" font-weight="600" letter-spacing="{{TITLE_SPACING}}" fill="url(#silver)">{{TITLE_XML}}</text>
+    <text x="1440" y="366" text-anchor="middle" font-size="{{SUBTITLE_SIZE}}" font-weight="400" letter-spacing="0.1" fill="#a6acb8">{{SUBTITLE_XML}}</text>
+  </g>
+
+  <!-- Framing is outside the image. There is no clipping, cropping, UI redraw, or screenshot filter. -->
+  <g opacity="{{FRAME_OPACITY}}">
+  <rect x="{{FRAME_X}}" y="{{SHADOW_Y}}" width="{{FRAME_WIDTH}}" height="{{FRAME_HEIGHT}}" rx="26" fill="#000000" fill-opacity="0.56" filter="url(#windowShadow)"/>
+  <rect x="{{FRAME_X}}" y="{{FRAME_Y}}" width="{{FRAME_WIDTH}}" height="{{FRAME_HEIGHT}}" rx="26" fill="#ffffff" fill-opacity="0.016" stroke="url(#glass)" stroke-width="1.5"/>
+  </g>
+  <image x="{{IMAGE_X}}" y="{{IMAGE_Y}}" width="{{IMAGE_WIDTH}}" height="{{IMAGE_HEIGHT}}" preserveAspectRatio="xMidYMid meet" xlink:href="{{SCREENSHOT_DATA_URI}}"/>
+</svg>
