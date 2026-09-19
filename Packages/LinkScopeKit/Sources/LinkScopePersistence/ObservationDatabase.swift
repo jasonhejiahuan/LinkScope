@@ -5,6 +5,7 @@ import SQLite3
 
 public struct ObservationQuery: Sendable {
     public var physicalAccessoryID: UUID?
+    public var transportIdentityID: UUID?
     public var providerID: ProviderID?
     public var parameterPath: ParameterPath?
     public var availability: AvailabilityCode?
@@ -16,6 +17,7 @@ public struct ObservationQuery: Sendable {
 
     public init(
         physicalAccessoryID: UUID? = nil,
+        transportIdentityID: UUID? = nil,
         providerID: ProviderID? = nil,
         parameterPath: ParameterPath? = nil,
         availability: AvailabilityCode? = nil,
@@ -26,6 +28,7 @@ public struct ObservationQuery: Sendable {
         limit: Int = 500
     ) {
         self.physicalAccessoryID = physicalAccessoryID
+        self.transportIdentityID = transportIdentityID
         self.providerID = providerID
         self.parameterPath = parameterPath
         self.availability = availability
@@ -34,6 +37,41 @@ public struct ObservationQuery: Sendable {
         self.from = from
         self.through = through
         self.limit = max(1, limit)
+    }
+
+    public init(
+        observationIdentity: ObservationIdentity,
+        availability: AvailabilityCode? = nil,
+        from: Date? = nil,
+        through: Date? = nil,
+        limit: Int = 500
+    ) {
+        self.init(
+            transportIdentityID: observationIdentity.transportIdentityID,
+            providerID: observationIdentity.providerID,
+            parameterPath: observationIdentity.parameterPath,
+            availability: availability,
+            from: from,
+            through: through,
+            limit: limit
+        )
+    }
+
+    public init?(
+        widgetSourceID: WidgetSourceID,
+        availability: AvailabilityCode? = nil,
+        from: Date? = nil,
+        through: Date? = nil,
+        limit: Int = 500
+    ) {
+        guard let identity = widgetSourceID.observationIdentity else { return nil }
+        self.init(
+            observationIdentity: identity,
+            availability: availability,
+            from: from,
+            through: through,
+            limit: limit
+        )
     }
 }
 
@@ -58,7 +96,7 @@ public enum ObservationDatabaseError: Error, LocalizedError {
 }
 
 public actor ObservationDatabase: ObservationSink {
-    public static let currentSchemaVersion = 4
+    public static let currentSchemaVersion = 5
 
     private let connection: SQLiteConnection
     private let keys: DatabaseKeyMaterial
@@ -216,6 +254,10 @@ public actor ObservationDatabase: ObservationSink {
             clauses.append("physical_accessory_id = ?")
             bindings.append(.text(value.uuidString))
         }
+        if let value = query.transportIdentityID {
+            clauses.append("transport_identity_id = ?")
+            bindings.append(.text(value.uuidString))
+        }
         if let value = query.providerID {
             clauses.append("provider_id = ?")
             bindings.append(.text(value.rawValue))
@@ -330,6 +372,86 @@ public actor ObservationDatabase: ObservationSink {
             }
             return results
         }
+    }
+
+    @discardableResult
+    public func saveDashboard(_ dashboard: DashboardDocument) throws -> DashboardDocument {
+        let dashboard = dashboard.schemaVersion > DashboardDocument.currentSchemaVersion
+            ? dashboard
+            : DashboardLayoutEngine.normalized(dashboard)
+        let sql = """
+            INSERT INTO dashboard_documents(id, name, schema_version, encrypted_payload)
+            VALUES(?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                name = excluded.name,
+                schema_version = excluded.schema_version,
+                encrypted_payload = excluded.encrypted_payload;
+            """
+        let payload = try encrypted(dashboard)
+        try withStatement(sql) { statement in
+            bind(dashboard.id.uuidString, at: 1, to: statement)
+            // The legacy column remains for schema compatibility only. Custom
+            // dashboard names live exclusively inside the encrypted payload.
+            bind("", at: 2, to: statement)
+            bind(Int64(dashboard.schemaVersion), at: 3, to: statement)
+            bind(payload, at: 4, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+        return dashboard
+    }
+
+    public func dashboards(limit: Int = 500) throws -> [DashboardDocument] {
+        let sql = "SELECT encrypted_payload FROM dashboard_documents ORDER BY id;"
+        return try withStatement(sql) { statement in
+            var results: [DashboardDocument] = []
+            while sqlite3_step(statement) == SQLITE_ROW {
+                let dashboard = try decrypted(
+                    DashboardDocument.self,
+                    from: columnData(statement, index: 0)
+                )
+                results.append(
+                    dashboard.schemaVersion > DashboardDocument.currentSchemaVersion
+                        ? dashboard
+                        : DashboardLayoutEngine.normalized(dashboard)
+                )
+            }
+            let sorted = results.sorted { lhs, rhs in
+                let leftFolded = lhs.name.lowercased()
+                let rightFolded = rhs.name.lowercased()
+                if leftFolded != rightFolded { return leftFolded < rightFolded }
+                if lhs.name != rhs.name { return lhs.name < rhs.name }
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            return Array(sorted.prefix(max(1, min(limit, 5_000))))
+        }
+    }
+
+    public func dashboard(id: UUID) throws -> DashboardDocument? {
+        let sql = """
+            SELECT encrypted_payload FROM dashboard_documents
+            WHERE id = ? LIMIT 1;
+            """
+        return try withStatement(sql) { statement in
+            bind(id.uuidString, at: 1, to: statement)
+            guard sqlite3_step(statement) == SQLITE_ROW else { return nil }
+            let dashboard = try decrypted(
+                DashboardDocument.self,
+                from: columnData(statement, index: 0)
+            )
+            return dashboard.schemaVersion > DashboardDocument.currentSchemaVersion
+                ? dashboard
+                : DashboardLayoutEngine.normalized(dashboard)
+        }
+    }
+
+    @discardableResult
+    public func deleteDashboard(id: UUID) throws -> Bool {
+        let sql = "DELETE FROM dashboard_documents WHERE id = ?;"
+        try withStatement(sql) { statement in
+            bind(id.uuidString, at: 1, to: statement)
+            try stepDone(statement, sql: sql)
+        }
+        return sqlite3_changes(connection.handle) > 0
     }
 
     public func saveDiagnosticRun(_ run: DiagnosticRun) throws {
@@ -457,6 +579,65 @@ public actor ObservationDatabase: ObservationSink {
             bind(trigger.triggeredAt.timeIntervalSince1970, at: 4, to: statement)
             bind(payload, at: 5, to: statement)
             try stepDone(statement, sql: sql)
+        }
+    }
+
+    public func ruleTriggers(
+        ruleID: UUID? = nil,
+        limit: Int = 500
+    ) throws -> [RuleTrigger] {
+        let sql: String
+        if ruleID == nil {
+            sql = """
+                SELECT encrypted_payload FROM rule_triggers
+                ORDER BY triggered_at DESC LIMIT ?;
+                """
+        } else {
+            sql = """
+                SELECT encrypted_payload FROM rule_triggers
+                WHERE rule_id = ? ORDER BY triggered_at DESC LIMIT ?;
+                """
+        }
+        return try withStatement(sql) { statement in
+            var bindingIndex: Int32 = 1
+            if let ruleID {
+                bind(ruleID.uuidString, at: bindingIndex, to: statement)
+                bindingIndex += 1
+            }
+            bind(Int64(max(1, min(limit, 100_000))), at: bindingIndex, to: statement)
+            var results: [RuleTrigger] = []
+            while sqlite3_step(statement) == SQLITE_ROW {
+                results.append(try decrypted(
+                    RuleTrigger.self,
+                    from: columnData(statement, index: 0)
+                ))
+            }
+            return results
+        }
+    }
+
+    public func latestRuleTriggerDates() throws -> [UUID: Date] {
+        let sql = """
+            SELECT candidate.encrypted_payload
+            FROM rule_triggers AS candidate
+            WHERE candidate.id = (
+                SELECT latest.id FROM rule_triggers AS latest
+                WHERE latest.rule_id = candidate.rule_id
+                ORDER BY latest.triggered_at DESC, latest.id DESC
+                LIMIT 1
+            )
+            ORDER BY candidate.rule_id;
+            """
+        return try withStatement(sql) { statement in
+            var results: [UUID: Date] = [:]
+            while sqlite3_step(statement) == SQLITE_ROW {
+                let trigger = try decrypted(
+                    RuleTrigger.self,
+                    from: columnData(statement, index: 0)
+                )
+                results[trigger.ruleID] = trigger.triggeredAt
+            }
+            return results
         }
     }
 
@@ -657,6 +838,10 @@ public actor ObservationDatabase: ObservationSink {
         }
         if version < 4 {
             try applyMigration(4, sql: migration4, connection: connection)
+            version = 4
+        }
+        if version < 5 {
+            try applyMigration(5, sql: migration5, connection: connection)
         }
     }
 
@@ -822,6 +1007,12 @@ public actor ObservationDatabase: ObservationSink {
         );
         CREATE INDEX IF NOT EXISTS rule_triggers_rule_time
             ON rule_triggers(rule_id, triggered_at DESC);
+        """
+
+    private static let migration5 = """
+        UPDATE dashboard_documents SET name = '';
+        CREATE INDEX IF NOT EXISTS observations_transport_path_time
+            ON observations(transport_identity_id, parameter_path, observed_at DESC);
         """
 }
 

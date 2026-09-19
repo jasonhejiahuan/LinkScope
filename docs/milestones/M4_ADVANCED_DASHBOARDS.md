@@ -1,6 +1,7 @@
 # Milestone 4 — Advanced Dashboard System
 
-**Status:** deferred, not cancelled. Grid-interaction feasibility probes are allowed now.
+**Status:** implemented in LinkScope 2.0.0. Reference-machine performance
+capture remains part of release QA.
 
 ## Restored scope
 
@@ -31,3 +32,18 @@
 - A 50-widget reference dashboard remains responsive without causing an idle
   provider sampling loop.
 
+## 2.0 implementation evidence
+
+- `DashboardLayoutEngine` normalizes, adds, moves, resizes, duplicates, and
+  removes widgets on a twelve-column collision-aware grid.
+- The native editor supports pointer drag/resize, keyboard and accessibility
+  actions, inspector editing, destructive confirmation, and Undo/Redo.
+- Current Value, Status, Time Series, Raw Table, Timeline, and Provider Health
+  render from the shared observation model. History queries use the exact source
+  index and LTTB decimation runs away from the main actor.
+- Dashboard documents are encrypted at rest. Newer schema fields—including
+  nested placement and configuration fields—round-trip without normalization or
+  deletion.
+- Signed runtime acceptance proves normal-Quit restoration and Full-to-Lite
+  placeholder preservation. The 50-widget reference-machine performance capture
+  remains listed in `docs/STATUS.md` as external release evidence.

@@ -20,8 +20,15 @@ struct LinkScopeApp: App {
         WindowGroup("LinkScope", id: "main") {
             LinkScopeRootView(model: model)
                 .frame(minWidth: 820, minHeight: 540)
+                .onAppear {
+                    appDelegate.installApplicationModel(model)
+                }
         }
         .defaultSize(width: 1_120, height: 720)
+        .windowResizability(.contentMinSize)
+        .commands {
+            LinkScopeCommands(model: model)
+        }
 
         MenuBarExtra {
             LinkScopeMenuBarView(model: model)
@@ -32,5 +39,6 @@ struct LinkScopeApp: App {
         Settings {
             LinkScopeSettingsView(model: model)
         }
+        .windowResizability(.contentSize)
     }
 }

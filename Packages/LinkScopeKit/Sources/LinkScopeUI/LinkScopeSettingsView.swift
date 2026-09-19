@@ -78,6 +78,7 @@ public struct LinkScopeSettingsView: View {
             }
         }
         .environment(\.linkScopeLanguage, language)
+        .environment(\.locale, Locale(identifier: language.rawValue))
         .frame(width: 620, height: 440)
         .task { await model.refreshPermissionStatuses() }
         .alert(

@@ -1,3 +1,4 @@
+@preconcurrency import CoreBluetooth
 import Foundation
 @preconcurrency import IOBluetooth
 import LinkScopeCore
@@ -17,6 +18,7 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
     private let emitter = ProviderEventEmitter()
     private var connectNotification: IOBluetoothUserNotification?
     private var disconnectNotifications: [String: IOBluetoothUserNotification] = [:]
+    private var isStarted = false
 
     public override init() {
         super.init()
@@ -27,8 +29,36 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
     }
 
     public func start() async {
+        switch CBManager.authorization {
+        case .notDetermined:
+            emitter.yield(.status(ProviderStatus(
+                providerID: descriptor.id,
+                state: .idle,
+                message: "Bluetooth access has not been requested"
+            )))
+            return
+        case .denied, .restricted:
+            emitter.yield(.status(ProviderStatus(
+                providerID: descriptor.id,
+                state: .permissionDenied,
+                message: "Bluetooth permission denied"
+            )))
+            return
+        case .allowedAlways:
+            break
+        @unknown default:
+            emitter.yield(.status(ProviderStatus(
+                providerID: descriptor.id,
+                state: .failed,
+                message: "Unknown Bluetooth authorization state"
+            )))
+            return
+        }
+
         emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .starting)))
-        await MainActor.run {
+        let didStart = await MainActor.run {
+            guard !self.isStarted else { return false }
+            self.isStarted = true
             self.connectNotification = IOBluetoothDevice.register(
                 forConnectNotifications: self,
                 selector: #selector(self.deviceConnected(_:device:))
@@ -38,8 +68,11 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
                 self.emit(device, event: "initial")
                 self.registerDisconnect(for: device)
             }
+            return true
         }
-        emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .running)))
+        if didStart {
+            emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .running)))
+        }
     }
 
     public func stop() async {
@@ -48,12 +81,14 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
             self.connectNotification = nil
             self.disconnectNotifications.values.forEach { $0.unregister() }
             self.disconnectNotifications.removeAll()
+            self.isStarted = false
         }
         emitter.yield(.status(ProviderStatus(providerID: descriptor.id, state: .stopped)))
         emitter.finish()
     }
 
     public func sample(_ request: ProviderSampleRequest) async -> AccessoryObservation? {
+        guard CBManager.authorization == .allowedAlways else { return nil }
         guard request.parameterPath.rawValue == "radio.rssi" else { return nil }
         return await MainActor.run {
             let paired = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
@@ -68,6 +103,17 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
                     value: nil,
                     availability: .notReported(
                         detail: "RSSI is only readable while the Bluetooth device is connected"
+                    ),
+                    sessionID: request.sessionID
+                )
+            }
+            guard device.classOfDevice != 0 else {
+                return AccessoryObservation(
+                    transportIdentity: transport,
+                    parameterPath: request.parameterPath,
+                    value: nil,
+                    availability: .notReported(
+                        detail: "RSSI is not sampled for a background, non-user-visible Bluetooth link"
                     ),
                     sessionID: request.sessionID
                 )
@@ -173,7 +219,7 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
             path: "bluetooth.classOfDevice",
             value: .unsignedInt(UInt64(classOfDevice))
         ))
-        if basebandConnected {
+        if userVisibleConnected {
             let rssi = Int64(device.rawRSSI())
             if rssi == 127 {
                 emitter.yield(ProviderObservationFactory.unavailable(
@@ -188,6 +234,14 @@ public final class IOBluetoothProvider: NSObject, @unchecked Sendable, Accessory
                     value: .signedInt(rssi)
                 ))
             }
+        } else if basebandConnected {
+            emitter.yield(ProviderObservationFactory.unavailable(
+                transport: transport,
+                path: "radio.rssi",
+                availability: .notReported(
+                    detail: "RSSI is not sampled for a background, non-user-visible Bluetooth link"
+                )
+            ))
         } else {
             emitter.yield(ProviderObservationFactory.unavailable(
                 transport: transport,

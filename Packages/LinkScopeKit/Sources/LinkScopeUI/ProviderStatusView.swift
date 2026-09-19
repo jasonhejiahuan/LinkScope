@@ -7,31 +7,38 @@ struct ProviderStatusView: View {
     let statuses: [ProviderStatus]
 
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        LText("providers.title").font(.largeTitle.weight(.bold))
-                        LText("providers.description").foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                }
-                .padding(.bottom, 8)
-
-                ForEach(descriptors) { descriptor in
-                    ProviderCard(
-                        descriptor: descriptor,
-                        status: statuses.first { $0.providerID == descriptor.id }
+        Group {
+            if descriptors.isEmpty {
+                ContentUnavailableView {
+                    Label(
+                        L10n.string("providers.empty", language: language),
+                        systemImage: "shippingbox"
                     )
+                } description: {
+                    Text(L10n.string("providers.empty.description", language: language))
                 }
+            } else {
+                List {
+                    Section {
+                        ForEach(descriptors) { descriptor in
+                            ProviderRow(
+                                descriptor: descriptor,
+                                status: statuses.first { $0.providerID == descriptor.id }
+                            )
+                        }
+                    } header: {
+                        Text(L10n.string("providers.description", language: language))
+                            .textCase(nil)
+                    }
+                }
+                .listStyle(.inset)
             }
-            .padding()
         }
-        .navigationTitle(L10n.string("sidebar.providers", language: language))
+        .navigationTitle(L10n.string("providers.title", language: language))
     }
 }
 
-private struct ProviderCard: View {
+private struct ProviderRow: View {
     @Environment(\.linkScopeLanguage) private var language
     let descriptor: ProviderDescriptor
     let status: ProviderStatus?
@@ -39,39 +46,77 @@ private struct ProviderCard: View {
     private var state: ProviderState { status?.state ?? .idle }
 
     var body: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(descriptor.displayName).font(.headline)
-                        Text(descriptor.id.rawValue)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    HStack(spacing: 6) {
-                        Circle().fill(stateColor).frame(width: 8, height: 8)
-                        Text(L10n.string("providerState.\(state.rawValue)", language: language))
-                    }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Image(systemName: stateSymbol)
+                    .foregroundStyle(stateColor)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(descriptor.displayName)
+                        .font(.headline)
+                    Text(descriptor.id.rawValue)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+
+                Spacer(minLength: 12)
+
+                Text(L10n.string("providerState.\(state.rawValue)", language: language))
                     .font(.caption.weight(.medium))
-                }
+                    .foregroundStyle(stateColor)
+            }
+            .accessibilityElement(children: .combine)
 
-                if let message = status?.message {
-                    Text(message).foregroundStyle(.secondary).textSelection(.enabled)
-                }
+            if let message = status?.message, !message.isEmpty {
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
 
-                FlowLayout(spacing: 6) {
-                    ForEach(descriptor.capabilities) { capability in
-                        Text("\(capability.operation.rawValue) · \(capability.id)")
-                            .font(.caption.monospaced())
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(.quaternary, in: Capsule())
+            if !descriptor.capabilities.isEmpty {
+                DisclosureGroup {
+                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 5) {
+                        ForEach(descriptor.capabilities) { capability in
+                            GridRow {
+                                Text(capability.operation.rawValue.capitalized)
+                                    .font(.caption.weight(.medium))
+                                Text(capability.id)
+                                    .font(.caption.monospaced())
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
+                        }
                     }
+                    .padding(.top, 4)
+                } label: {
+                    Label(
+                        L10n.formatted(
+                            "providers.capabilityCount",
+                            language: language,
+                            descriptor.capabilities.count
+                        ),
+                        systemImage: "checklist"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(4)
+        }
+        .padding(.vertical, 6)
+    }
+
+    private var stateSymbol: String {
+        switch state {
+        case .idle: "pause.circle"
+        case .starting: "clock.arrow.circlepath"
+        case .running: "checkmark.circle.fill"
+        case .permissionDenied: "lock.slash.fill"
+        case .unsupported: "questionmark.diamond.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        case .stopped: "stop.circle"
         }
     }
 
@@ -85,52 +130,3 @@ private struct ProviderCard: View {
         }
     }
 }
-
-private struct FlowLayout: Layout {
-    let spacing: CGFloat
-
-    func sizeThatFits(
-        proposal: ProposedViewSize,
-        subviews: Subviews,
-        cache: inout ()
-    ) -> CGSize {
-        let width = proposal.width ?? 600
-        var x: CGFloat = 0
-        var y: CGFloat = 0
-        var lineHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if x > 0, x + size.width > width {
-                x = 0
-                y += lineHeight + spacing
-                lineHeight = 0
-            }
-            x += size.width + spacing
-            lineHeight = max(lineHeight, size.height)
-        }
-        return CGSize(width: width, height: y + lineHeight)
-    }
-
-    func placeSubviews(
-        in bounds: CGRect,
-        proposal: ProposedViewSize,
-        subviews: Subviews,
-        cache: inout ()
-    ) {
-        var x = bounds.minX
-        var y = bounds.minY
-        var lineHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if x > bounds.minX, x + size.width > bounds.maxX {
-                x = bounds.minX
-                y += lineHeight + spacing
-                lineHeight = 0
-            }
-            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-            x += size.width + spacing
-            lineHeight = max(lineHeight, size.height)
-        }
-    }
-}
-

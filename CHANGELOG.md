@@ -3,6 +3,48 @@
 Every user-visible update advances both the marketing version and build number
 for the Full and Lite targets.
 
+## 2.0.0 (9) — 2026-08-25
+
+### Added
+
+- Named dashboards with a twelve-column layout, pointer and keyboard editing,
+  widget inspection, duplication, deletion, and Undo/Redo.
+- Current-value, status, time-series, raw-table, timeline, and provider-health
+  widgets backed by live observations and indexed history.
+- Versioned JSON dashboard import/export with lossless unknown-field handling and
+  explained placeholders when a Full-only source is opened in LinkScope Lite.
+- Native Dashboard navigation, compact Provider Status disclosure rows, inline
+  Timeline filtering, and shared macOS commands for primary navigation and
+  snapshots.
+
+### Changed
+
+- Keychain storage now uses the Data Protection Keychain with an exact,
+  per-edition access group and defers all interactive authorization until the
+  user chooses it from the permission manager.
+- Bluetooth authorization is requested explicitly after the main window is
+  available. Previously granted access survives rebuilt Development-signed test
+  apps without blocking launch.
+- Dashboard history work shares in-flight requests and a short cache, maintains
+  a bounded live ring, and performs LTTB decimation away from the main actor
+  without adding provider sampling.
+- Dashboard writes are ordered and flushed through macOS's asynchronous
+  termination path so edits survive a normal Quit.
+
+### Fixed
+
+- Removed nested toolbar/search ownership that could crash during window setup.
+- Made widget source identifiers reversible when provider or parameter paths
+  contain separators, including the reserved legacy `v2` provider name.
+- Preserved opaque dashboard, widget, configuration, and grid-placement fields
+  across newer-schema import, storage, and export.
+
+### Development
+
+- Both editions inherit version `2.0.0 (9)` from the project and the verification
+  script checks generated versions, strict signing, entitlements, provisioning,
+  bundle identity, and Bluetooth usage descriptions.
+
 ## 1.4.0 (9) — 2026-08-25
 
 ### Added

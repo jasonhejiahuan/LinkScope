@@ -2,6 +2,7 @@
 
 Status values used throughout this plan:
 
+- **Implemented** — completed in the current release boundary.
 - **Required now** — part of the first public inspector release.
 - **Experiment now** — isolated compatibility work that may run alongside v1,
   but cannot delay it.
@@ -12,11 +13,11 @@ Status values used throughout this plan:
 
 | Milestone | Theme | Release role | Status |
 | --- | --- | --- | --- |
-| 0 | Foundation | Shared architecture and testable data foundation | Required now |
-| 1 | Public Inspector | Useful Full/Lite v1 built only on public APIs | Required now |
-| 2 | Diagnostics and Monitoring | Sessions, sampling, rules, alerts, automation | Implemented initial release |
+| 0 | Foundation | Shared architecture and testable data foundation | Implemented |
+| 1 | Public Inspector | Useful Full/Lite v1 built only on public APIs | Implemented |
+| 2 | Diagnostics and Monitoring | Sessions, sampling, rules, alerts, automation | Implemented |
 | 3 | Experimental Private Providers | Isolated, runtime-discovered Full-only surfaces | Deferred, not cancelled; probes allowed now |
-| 4 | Advanced Dashboard System | Arbitrary dashboards and a twelve-column grid | Deferred, not cancelled; interaction probes allowed now |
+| 4 | Advanced Dashboard System | Arbitrary dashboards and a twelve-column grid | Implemented |
 
 ## Product invariants across every milestone
 
@@ -48,15 +49,13 @@ Milestone 1 public inspector (v1)
              v
 Milestone 2 diagnostics and monitoring
              |
-             v
-Milestone 3 experimental private integration
+             +------> Milestone 4 advanced dashboard (implemented)
              |
-             v
-Milestone 4 advanced dashboard interaction
+             +------> Milestone 3 experimental private integration (deferred)
 ```
 
-Small M3/M4 feasibility probes may branch from M0 at any time, but their output
-must be evidence or development-only code—not a production dependency.
+M3 remains isolated from the public-provider and dashboard paths. Its probes may
+continue without becoming a production dependency of M4.
 
 ## Detailed plans
 

@@ -71,7 +71,7 @@ private func makeResolvedObservation() -> ResolvedObservation {
 }
 
 @Test func diagnosticRunGapRuleAndSessionQueryRoundTrip() async throws {
-    let (database, _) = try makeDatabase()
+    let (database, url) = try makeDatabase()
     // The database intentionally stores Codable dates at millisecond precision.
     // Keep round-trip fixtures on that boundary so equality tests the payload
     // rather than sub-millisecond precision that is not part of the format.
@@ -105,7 +105,7 @@ private func makeResolvedObservation() -> ResolvedObservation {
         sessionID: run.id
     )
     let resolved = ResolvedObservation(observation: observation, identity: original.identity)
-    let gap = DiagnosticGap(
+    var gap = DiagnosticGap(
         sessionID: run.id,
         startedAt: fixtureDate.addingTimeInterval(1),
         reason: .systemSleep
@@ -115,18 +115,40 @@ private func makeResolvedObservation() -> ResolvedObservation {
         sourceID: source.id,
         predicate: .numericBelow(-80)
     )
+    let olderTrigger = RuleTrigger(
+        ruleID: rule.id,
+        triggeredAt: fixtureDate.addingTimeInterval(3),
+        summary: "Weak signal: -90"
+    )
+    let latestTrigger = RuleTrigger(
+        ruleID: rule.id,
+        observationID: resolved.id,
+        triggeredAt: fixtureDate.addingTimeInterval(9),
+        summary: "Weak signal: -91"
+    )
 
     try await database.saveDiagnosticRun(run)
     try await database.persist(resolved)
     try await database.saveDiagnosticGap(gap)
+    gap.endedAt = fixtureDate.addingTimeInterval(8)
+    try await database.saveDiagnosticGap(gap)
     try await database.saveRule(rule)
+    try await database.saveRuleTrigger(olderTrigger)
+    try await database.saveRuleTrigger(latestTrigger)
 
     #expect(try await database.diagnosticRuns() == [run])
     #expect(try await database.diagnosticGaps(sessionID: run.id) == [gap])
     #expect(try await database.rules() == [rule])
+    #expect(try await database.ruleTriggers(ruleID: rule.id) == [latestTrigger, olderTrigger])
+    #expect(try await database.latestRuleTriggerDates()[rule.id] == latestTrigger.triggeredAt)
     #expect(try await database.observations(
         matching: ObservationQuery(sessionID: run.id)
     ) == [resolved])
+
+    let keys = try DatabaseKeyMaterial(masterKeyData: Data(repeating: 0xA5, count: 32))
+    let reopened = try ObservationDatabase(url: url, keyMaterial: keys)
+    #expect(try await reopened.diagnosticGaps(sessionID: run.id) == [gap])
+    #expect(try await reopened.latestRuleTriggerDates()[rule.id] == latestTrigger.triggeredAt)
 }
 
 @Test func snapshotArchiveRoundTripsEveryAvailability() throws {
@@ -216,4 +238,213 @@ private func makeResolvedObservation() -> ResolvedObservation {
     #expect(stored.observations.isEmpty)
     #expect(stored.providerStatuses.isEmpty)
     #expect(stored.timeline.isEmpty)
+}
+
+@Test func encryptedDashboardCRUDSurvivesReopenWithDeterministicOrdering() async throws {
+    let (database, url) = try makeDatabase()
+    let privateName = "Alpha DASHBOARD-NAME-ULTRAVIOLET-SECRET"
+    let alphaID = UUID(uuidString: "10000000-0000-0000-0000-000000000001")!
+    let betaID = UUID(uuidString: "10000000-0000-0000-0000-000000000002")!
+    let alpha = DashboardDocument(
+        id: alphaID,
+        name: privateName,
+        widgets: [
+            DashboardWidget(
+                kind: .timeSeries,
+                sourceIDs: [],
+                placement: GridPlacement(
+                    column: 10,
+                    row: 0,
+                    columnSpan: 6,
+                    rowSpan: 4
+                ),
+                configuration: [
+                    "privateConfiguration": .string("DASHBOARD-SUPER-SECRET")
+                ]
+            )
+        ]
+    )
+    let beta = DashboardDocument(id: betaID, name: "beta")
+
+    let savedAlpha = try await database.saveDashboard(alpha)
+    _ = try await database.saveDashboard(beta)
+
+    #expect(savedAlpha.columns == 12)
+    #expect(savedAlpha.widgets[0].placement.column == 6)
+    #expect(try await database.dashboards().map(\.id) == [alphaID, betaID])
+    #expect(try await database.dashboard(id: alphaID) == savedAlpha)
+
+    try await database.checkpoint()
+    let databaseText = String(decoding: try Data(contentsOf: url), as: UTF8.self)
+    #expect(!databaseText.contains(privateName))
+    #expect(!databaseText.contains("DASHBOARD-SUPER-SECRET"))
+
+    let keys = try DatabaseKeyMaterial(masterKeyData: Data(repeating: 0xA5, count: 32))
+    let reopened = try ObservationDatabase(url: url, keyMaterial: keys)
+    #expect(try await reopened.dashboard(id: alphaID) == savedAlpha)
+
+    #expect(try await reopened.deleteDashboard(id: alphaID))
+    #expect(!(try await reopened.deleteDashboard(id: alphaID)))
+    #expect(try await reopened.dashboard(id: alphaID) == nil)
+}
+
+@Test func dashboardCodecPreservesFutureWidgetKindsAndOpaqueFields() throws {
+    let data = Data(
+        """
+        {
+          "schemaVersion": 9,
+          "id": "20000000-0000-0000-0000-000000000001",
+          "name": "Future Dashboard",
+          "columns": 24,
+          "futureDocument": {"accent": "ultraviolet", "revision": 42},
+          "widgets": [
+            {
+              "id": "20000000-0000-0000-0000-000000000002",
+              "kind": "futureSpectrum",
+              "sourceIDs": [],
+              "placement": {
+                "column": 1,
+                "row": 2,
+                "columnSpan": 5,
+                "rowSpan": 3,
+                "zIndex": 7
+              },
+              "configuration": {
+                "palette": {"futureGradient": {"stops": ["violet", "infrared"]}}
+              },
+              "futureWidget": {"flags": [true, "opaque"], "minimum": -12.5}
+            }
+          ]
+        }
+        """.utf8
+    )
+
+    let imported = try DashboardDocumentCodec.decode(data)
+    let widget = try #require(imported.widgets.first)
+
+    #expect(imported.schemaVersion == 9)
+    #expect(imported.columns == 24)
+    #expect(DashboardDocumentCodec.compatibility(of: imported) == .newer(9))
+    #expect(widget.kind.rawValue == "futureSpectrum")
+    #expect(!widget.kind.isSupported)
+    #expect(widget.configuration.isEmpty)
+    #expect(widget.opaqueConfiguration != nil)
+    #expect(widget.placement.extensionFields["zIndex"] == .signedInteger(7))
+    #expect(imported.extensionFields["futureDocument"] != nil)
+    #expect(widget.extensionFields["futureWidget"] != nil)
+
+    let exported = try DashboardDocumentCodec.encode(imported)
+    let reimported = try DashboardDocumentCodec.decode(exported)
+    #expect(reimported == imported)
+}
+
+@Test func newerDashboardSchemaPersistsWithoutCurrentLayoutRewrites() async throws {
+    let (database, url) = try makeDatabase()
+    let future = DashboardDocument(
+        schemaVersion: DashboardDocument.currentSchemaVersion + 4,
+        id: UUID(uuidString: "25000000-0000-0000-0000-000000000001")!,
+        name: "Future Layout",
+        columns: 24,
+        widgets: [
+            DashboardWidget(
+                id: UUID(uuidString: "25000000-0000-0000-0000-000000000002")!,
+                kind: DashboardWidget.Kind(rawValue: "futureSpectrum"),
+                sourceIDs: [],
+                placement: GridPlacement(
+                    column: 18,
+                    row: 0,
+                    columnSpan: 6,
+                    rowSpan: 5
+                ),
+                extensionFields: ["futureWidget": .string("opaque")]
+            ),
+            DashboardWidget(
+                id: UUID(uuidString: "25000000-0000-0000-0000-000000000003")!,
+                kind: .currentValue,
+                sourceIDs: [],
+                placement: GridPlacement(
+                    column: 18,
+                    row: 0,
+                    columnSpan: 6,
+                    rowSpan: 5
+                )
+            )
+        ],
+        extensionFields: ["futureLayout": .signedInteger(24)]
+    )
+
+    #expect(try await database.saveDashboard(future) == future)
+    #expect(try await database.dashboard(id: future.id) == future)
+
+    let keys = try DatabaseKeyMaterial(masterKeyData: Data(repeating: 0xA5, count: 32))
+    let reopened = try ObservationDatabase(url: url, keyMaterial: keys)
+    #expect(try await reopened.dashboard(id: future.id) == future)
+}
+
+@Test func widgetSourceHistoryQueryUsesTransportAndPathIdentity() async throws {
+    let (database, _) = try makeDatabase()
+    let timestamp = Date(timeIntervalSince1970: 1_700_000_100)
+    let physical = PhysicalAccessoryIdentity(
+        id: UUID(uuidString: "30000000-0000-0000-0000-000000000001")!,
+        displayName: "History Fixture",
+        createdAt: timestamp
+    )
+    let targetTransport = TransportIdentity(
+        id: UUID(uuidString: "30000000-0000-0000-0000-000000000002")!,
+        providerID: "unit.dashboard",
+        kind: .system,
+        rawIdentifier: "target"
+    )
+    let otherTransport = TransportIdentity(
+        id: UUID(uuidString: "30000000-0000-0000-0000-000000000003")!,
+        providerID: "unit.dashboard",
+        kind: .system,
+        rawIdentifier: "other"
+    )
+    let path = ParameterPath(rawValue: "radio:rssi")
+
+    func resolved(
+        id: UUID,
+        transport: TransportIdentity,
+        value: Int64
+    ) -> ResolvedObservation {
+        ResolvedObservation(
+            observation: AccessoryObservation(
+                id: id,
+                timestamp: timestamp,
+                transportIdentity: transport,
+                parameterPath: path,
+                value: .signedInt(value),
+                availability: .available
+            ),
+            identity: ResolvedIdentity(
+                physicalAccessory: physical,
+                transportIdentity: transport,
+                resolution: .independent
+            )
+        )
+    }
+
+    let target = resolved(
+        id: UUID(uuidString: "30000000-0000-0000-0000-000000000004")!,
+        transport: targetTransport,
+        value: -48
+    )
+    let other = resolved(
+        id: UUID(uuidString: "30000000-0000-0000-0000-000000000005")!,
+        transport: otherTransport,
+        value: -80
+    )
+    try await database.persist(target)
+    try await database.persist(other)
+
+    let sourceID = WidgetSourceID(observationIdentity: target.observationIdentity)
+    let query = try #require(ObservationQuery(widgetSourceID: sourceID, limit: 300))
+    let results = try await database.observations(matching: query)
+
+    #expect(sourceID.observationIdentity == target.observationIdentity)
+    #expect(query.transportIdentityID == targetTransport.id)
+    #expect(query.parameterPath == path)
+    #expect(results == [target])
+    #expect(ObservationQuery(widgetSourceID: WidgetSourceID(rawValue: "opaque")) == nil)
 }
