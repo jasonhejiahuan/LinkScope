@@ -1,0 +1,22 @@
+name: Release merged pull request
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/publish-release.yml
+    with:
+      pull-request-number: ${{ github.event.pull_request.number }}
+      merge-commit-sha: ${{ github.event.pull_request.merge_commit_sha }}
+    secrets: inherit

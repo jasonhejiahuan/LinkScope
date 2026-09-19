@@ -45,7 +45,7 @@ for the Full and Lite targets.
   script checks generated versions, strict signing, entitlements, provisioning,
   bundle identity, and Bluetooth usage descriptions.
 
-## 1.3.0 (6) — 2026-08-20
+## 1.4.0 (9) — 2026-08-25
 
 ### Added
 
