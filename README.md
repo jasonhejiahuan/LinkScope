@@ -56,3 +56,30 @@ Run the shared tests and both signed Debug bundle checks with:
 ```sh
 ./script/check.sh
 ```
+
+## License
+
+Copyright (C) 2026 JASON Studio.
+
+Unless a file states otherwise, LinkScope's original source code and associated
+project materials are licensed under the **GNU Affero General Public License,
+version 3 only** (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the complete terms.
+Third-party components retain their own licenses.
+
+You may study, run, modify, and share the project, including for research and
+commercial use, subject to the license. When distributing covered works, keep
+the required notices, identify modifications, and provide the corresponding
+source under the same license. If you modify the program and let users interact
+with it remotely over a network, offer those users the corresponding source of
+that modified version as required by section 13.
+
+AGPL is a strong copyleft license, not a restriction on fields of use. It does
+not prohibit commercial use or guarantee that nobody will misuse the software.
+No permission to imply endorsement by JASON Studio or to claim that a modified
+build is an official LinkScope release is granted.
+
+The copyright holder may distribute its own official builds under separate
+terms, including applicable App Store terms. This does not grant third parties
+an exception from AGPL. Before including third-party contributions in official
+store builds, maintainers must verify the rights needed for that distribution;
+contributions do not automatically transfer copyright.
