@@ -1,14 +1,46 @@
-<img src="Design/AppIcon/exports/LinkScope-iOS-27-Default.png" width="128" height="128" alt="LinkScope icon">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jasonhejiahuan/LinkScope/main/Design/AppIcon/exports/LinkScope-iOS-27-Default.png" width="112" height="112" alt="LinkScope — Icon Composer Design Generation 27">
+</p>
 
-# LinkScope
+<h1 align="center">LinkScope</h1>
 
-Current development version: **2.0.1 (13)**. See [CHANGELOG.md](CHANGELOG.md).
+<p align="center">
+  <strong>Explore Bluetooth. Inspect your peripherals.</strong><br>
+  探索蓝牙与外设
+</p>
 
-LinkScope is a native macOS wireless-accessory inspector for people who want to
-see what the system exposes without letting the inspector take over their Mac.
-It is read-only, event-driven while idle, bilingual by default, and designed to
-combine public-framework inspection, explicit diagnostics, and fully
-customizable dashboards while keeping experimental providers isolated.
+<p align="center">
+  Device parameters, connection states, and diagnostics.<br>
+  One native workspace for macOS.
+</p>
+
+<p align="center">
+  <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-15%2B-315F9A?style=flat-square&amp;labelColor=24292F" alt="macOS 15 or later"></a>
+  <a href="https://www.swift.org/"><img src="https://img.shields.io/badge/Swift-6-F05138?style=flat-square&amp;labelColor=24292F" alt="Swift 6"></a>
+  <a href="https://github.com/jasonhejiahuan/LinkScope/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--only-315F9A?style=flat-square&amp;labelColor=24292F" alt="AGPL-3.0-only"></a>
+  <a href="https://apps.jasonstu.cc/linkscope"><img src="https://img.shields.io/badge/LinkScope_Lite-Free-315F9A?style=flat-square&amp;labelColor=24292F" alt="LinkScope Lite is free"></a>
+</p>
+
+<p align="center">
+  <a href="https://apps.jasonstu.cc/linkscope"><strong>Get LinkScope Lite</strong></a> &nbsp;·&nbsp; <a href="https://github.com/jasonhejiahuan/LinkScope/tree/main/docs">Documentation</a> &nbsp;·&nbsp; <a href="https://github.com/jasonhejiahuan/LinkScope/issues">Issues</a> &nbsp;·&nbsp; <a href="https://apps.jasonstu.cc/linkscope/privacy">Privacy</a>
+</p>
+
+<br>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jasonhejiahuan/LinkScope/main/Design/AppStore/2.0.0/captured/dashboard-en.png" width="960" alt="LinkScope Lite showing a custom dashboard with device readings and provider status">
+</p>
+
+<p align="center">
+  <sub>System-reported data · On-demand diagnostics · Custom dashboards</sub>
+</p>
+
+---
+
+LinkScope brings accessory parameters, availability, and observation history into a native Mac workspace. Inspect supported devices, record diagnostic sessions, and arrange readings in custom dashboards. Available data depends on your Mac, connected hardware, and permissions.
+
+**LinkScope Lite is free on the Mac App Store.** This repository contains the shared source for the Full and Lite editions.
+
 
 ## Repository shape
 
