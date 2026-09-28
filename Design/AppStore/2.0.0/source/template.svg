@@ -43,5 +43,5 @@
   <rect x="{{FRAME_X}}" y="{{SHADOW_Y}}" width="{{FRAME_WIDTH}}" height="{{FRAME_HEIGHT}}" rx="26" fill="#000000" fill-opacity="0.56" filter="url(#windowShadow)"/>
   <rect x="{{FRAME_X}}" y="{{FRAME_Y}}" width="{{FRAME_WIDTH}}" height="{{FRAME_HEIGHT}}" rx="26" fill="#ffffff" fill-opacity="0.016" stroke="url(#glass)" stroke-width="1.5"/>
   </g>
-  <image x="{{IMAGE_X}}" y="{{IMAGE_Y}}" width="{{IMAGE_WIDTH}}" height="{{IMAGE_HEIGHT}}" preserveAspectRatio="xMidYMid meet" xlink:href="{{SCREENSHOT_DATA_URI}}"/>
+  <image x="{{IMAGE_X}}" y="{{IMAGE_Y}}" width="{{IMAGE_WIDTH}}" height="{{IMAGE_HEIGHT}}" preserveAspectRatio="xMidYMid meet" xlink:href="{{SCREENSHOT_PATH}}"/>
 </svg>

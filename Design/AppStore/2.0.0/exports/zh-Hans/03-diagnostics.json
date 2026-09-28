@@ -27,5 +27,5 @@
     "depth": "uchar",
     "hasAlpha": false
   },
-  "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+  "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
 }

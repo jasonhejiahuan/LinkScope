@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 const require = createRequire(import.meta.url);
 const sourceDir = path.dirname(fileURLToPath(import.meta.url));
@@ -91,7 +91,7 @@ for (const {locale, localized, scene, input} of selections) {
     LOCALE: locale, IMAGE_X: x, IMAGE_Y: y, IMAGE_WIDTH: width, IMAGE_HEIGHT: height,
     FRAME_X: x - 13, FRAME_Y: y - 13, FRAME_WIDTH: width + 26, FRAME_HEIGHT: height + 26,
     FRAME_OPACITY: meta.hasAlpha ? 0 : 1,
-    SHADOW_Y: y + 17, SCREENSHOT_DATA_URI: `data:${inputMIME};base64,${original.toString('base64')}`,
+    SHADOW_Y: y + 17, SCREENSHOT_PATH: xml(`../../../captured/${path.basename(input)}`),
   };
   const stem = `${scene.number}-${scene.id}`;
   const generatedDir = path.join(sourceDir, 'generated', locale);
@@ -102,9 +102,20 @@ for (const {locale, localized, scene, input} of selections) {
   await fs.writeFile(path.join(generatedDir, `${stem}.svg`), svg);
   await fs.writeFile(path.join(generatedDir, `${stem}.html`), renderTemplate(templates.html, r));
   const output = path.join(exportDir, `${stem}.png`);
-  await sharp(Buffer.from(svg), {density: 72})
-    .flatten({background: config.canvas.background}).removeAlpha().toColourspace('srgb')
-    .png({compressionLevel: 9, palette: false}).toFile(output);
+  // librsvg only resolves local resources beneath the SVG's base directory.
+  // Render from a temporary file beside captured/, retaining portable relative
+  // references in the editable sources. Never embed raster bytes in SVG or HTML.
+  const renderPath = path.join(root, `.render-${randomUUID()}.svg`);
+  try {
+    await fs.writeFile(renderPath, renderTemplate(templates.svg, {
+      ...r, SCREENSHOT_PATH: xml(`captured/${path.basename(input)}`),
+    }));
+    await sharp(renderPath, {density: 72})
+      .flatten({background: config.canvas.background}).removeAlpha().toColourspace('srgb')
+      .png({compressionLevel: 9, palette: false}).toFile(output);
+  } finally {
+    await fs.rm(renderPath, {force: true});
+  }
   const exported = await sharp(output).metadata();
   if (exported.width !== 2880 || exported.height !== 1800 || exported.hasAlpha || exported.channels !== 3 || exported.format !== 'png' || exported.depth !== 'uchar') {
     throw new Error(`Output is not 2880x1800, RGB 8-bit PNG without alpha: ${output}`);
@@ -115,7 +126,7 @@ for (const {locale, localized, scene, input} of selections) {
     placement: {x, y, width, height, scale, enlarged: scale > 1},
     output: path.relative(root, output), outputSHA256: hash(await fs.readFile(output)),
     pixels: {width: exported.width, height: exported.height, channels: exported.channels, depth: exported.depth, hasAlpha: exported.hasAlpha},
-    composition: `Original ${meta.format === 'jpeg' ? 'JPEG' : 'PNG'} bytes embedded intact; full image proportionally fitted, no clipping or UI redraw.`};
+    composition: `Original ${meta.format === 'jpeg' ? 'JPEG' : 'PNG'} file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw.`};
   records.push(record);
   await fs.writeFile(path.join(exportDir, `${stem}.json`), JSON.stringify(record, null, 2) + '\n');
   console.log(`PASS ${record.output}: 2880x1800 RGB, no alpha; source SHA-256 unchanged`);

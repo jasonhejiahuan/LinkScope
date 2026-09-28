@@ -28,3 +28,14 @@ Color intent:
 
 The earlier offset-aperture concept was rejected and is not used by the icon.
 These SVGs are the production source of truth.
+
+## GitHub repository icon
+
+`exports/LinkScope-iOS-27-Default.png` is the unmodified 1024 × 1024 static export from `LinkScope.icon`, exported in Icon Composer on 2026-09-28 with:
+
+- Effects: **Design Generation 27** (26 is not selected).
+- Platform: **iOS, macOS**.
+- Appearance: **Default**.
+- Size: **1024pt, 1×**.
+
+The repository README references this file directly. The editable artwork remains in the independent SVG layers inside `LinkScope.icon/Assets/`; the PNG preserves Icon Composer’s native glass rendering. Do not replace this export with the generation 26 rendering or the geometry-only preview. No SVG or image should be embedded as a data URI.

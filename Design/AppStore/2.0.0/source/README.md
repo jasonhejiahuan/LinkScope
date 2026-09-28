@@ -18,7 +18,7 @@ diagnostics-en.png    diagnostics-zh.png
 permissions-en.png    permissions-zh.png
 ```
 
-These PNG files replace the earlier computer-use JPEGs. `captured/native-provenance.json` maps each file to its original user-supplied filename and SHA-256. For each scene, the renderer accepts either `.jpg` or `.png`, reads the actual format, and embeds the complete original bytes with the matching `image/jpeg` or `image/png` MIME type. Keep only one file per scene: duplicate extensions stop the render rather than silently selecting a stale image.
+These PNG files replace the earlier computer-use JPEGs. `captured/native-provenance.json` maps each file to its original user-supplied filename and SHA-256. For each scene, the renderer accepts either `.jpg` or `.png`, reads the actual format, and references the complete original file using a relative path; no image data is embedded in SVG or HTML. Keep only one file per scene: duplicate extensions stop the render rather than silently selecting a stale image.
 
 Main-window originals measure 2798 × 1664 and use a 0.78125 scale; permission windows measure 1464 × 1280 and use a 1.0 scale. The renderer caps scaling at 1.0 and fits the full image without clipping, cropping, retouching, replacing text, changing metrics, or redrawing the UI. Native transparent window shadows are preserved during composition, then flattened for final output. Source hashes are checked again after rendering. Timeline and device-detail captures containing personal names or identifiers were excluded before composition; the renderer does not hide private information. The diagnostics scene shows an existing historical session, not evidence of a newly completed test.
 
@@ -34,7 +34,7 @@ For one localization or shot, append `--locale en-US` or `--scene providers`. Mi
 Outputs:
 
 - `../exports/en-US/` and `../exports/zh-Hans/`: final-size PNGs and per-image provenance JSON.
-- `generated/`: self-contained editable SVG and HTML files with the original JPEG or PNG embedded.
+- `generated/`: editable SVG and HTML files with relative references to the original JPEG or PNG in `captured/`. Keep the directory structure intact when copying these sources. Open SVGs directly in a compatible viewer; HTML companions reference the captures directly for browser review.
 - `../index.html`: responsive contact sheet linking to full-size PNGs and editable sources.
 - `../exports/manifest.json`: actual source format/MIME type, dimensions and placement scale, output color-channel checks and original/output SHA-256 digests.
 

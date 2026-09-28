@@ -1,3 +1,5 @@
+<img src="Design/AppIcon/exports/LinkScope-iOS-27-Default.png" width="128" height="128" alt="LinkScope icon">
+
 # LinkScope
 
 Current development version: **2.0.0 (9)**. See [CHANGELOG.md](CHANGELOG.md).

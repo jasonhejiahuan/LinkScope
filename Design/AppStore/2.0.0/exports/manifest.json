@@ -32,7 +32,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "zh-Hans",
@@ -63,7 +63,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "en-US",
@@ -94,7 +94,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "zh-Hans",
@@ -125,7 +125,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "en-US",
@@ -156,7 +156,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "zh-Hans",
@@ -187,7 +187,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "en-US",
@@ -218,7 +218,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     },
     {
       "locale": "zh-Hans",
@@ -249,7 +249,7 @@
         "depth": "uchar",
         "hasAlpha": false
       },
-      "composition": "Original PNG bytes embedded intact; full image proportionally fitted, no clipping or UI redraw."
+      "composition": "Original PNG file referenced externally and unchanged; full image proportionally fitted, no clipping or UI redraw."
     }
   ]
 }

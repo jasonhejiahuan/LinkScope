@@ -13,3 +13,6 @@
 *.jpeg binary
 *.gif binary
 *.pdf binary
+
+# Promotional layouts are design assets, not application implementation.
+Design/AppStore/** linguist-detectable=false
