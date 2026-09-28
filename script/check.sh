@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXPECTED_TEAM_ID="WBU2AFY549"
-EXPECTED_MARKETING_VERSION="2.0.0"
-EXPECTED_BUILD_NUMBER="9"
+EXPECTED_MARKETING_VERSION="2.0.1"
+EXPECTED_BUILD_NUMBER="13"
 LAST_VERIFIED_AUTHORITY=""
 
 if [[ -z "${DEVELOPER_DIR:-}" && -d /Applications/Xcode-beta.app/Contents/Developer ]]; then

@@ -12,6 +12,22 @@
   First inspect the real process output, unified log, crash report, exit status,
   build products, entitlements, and relevant state transitions.
 
+## Release submission ownership
+
+- The user performs release archives and App Store submission manually in the
+  Xcode GUI. Unless explicitly requested for that task, do not automatically
+  build Release distribution artifacts, run Archive/export/upload commands,
+  or submit on the user's behalf through GUI automation or CI.
+- Prepare source changes, Debug checks, metadata, privacy declarations and
+  screenshots; hand off to the user for Product > Archive and Organizer
+  validation/distribution. Do not reuse an agent-generated archive as the
+  default submission artifact.
+- On 2026-09-19 the user reported that submitting the earlier agent-generated
+  archive produced an unsupported-Xcode error, while creating a fresh archive
+  in Xcode GUI removed that error. Do not infer that Xcode 27.2 Beta cannot
+  submit solely from this incident, or require a stable Xcode installation as
+  its established fix. Error resolution is not proof of final review approval.
+
 ## Versioning ownership
 
 - Define `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` only on the

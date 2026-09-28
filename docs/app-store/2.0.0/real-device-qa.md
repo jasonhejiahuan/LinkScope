@@ -65,7 +65,7 @@ Diagnostics 图片中的 **Demo2 是 2026-08-19 已完成的真实历史会话�
 
 ## 最终 Release 包检查
 
-后续上传阻塞：用户报告 Apple 不接受构建所用 Xcode。复核此归档确为旧 Beta `27A5252f`；下列本地验证结果不等于工具链接受验证。必须以正式 Xcode 27（27A266a）重新归档替代该包，详见 [修复说明](xcode-submission-blocker.md)。
+后续用户验证：提交助手生成的旧归档时报 Xcode 版本错误，用户在当前 Xcode GUI 重新 Archive 后该错误消失。旧包记录为 `27A5252f`，不能据此判定当前 27.2 Beta 不支持提交；撤回“必须安装正式版”的结论。以下仍是旧包的本地验证记录，不代表用户新归档或最终审核结果。后续由用户手动归档和提交，助手默认不自动构建发布包，详见 [更正记录](xcode-submission-blocker.md)。
 
 最终归档仍为 **Apple Development 本机签名**，不是已通过 App Store 分发签名、上传处理或审核的包。核对项目包括版本、Universal 2 架构、严格签名、sandbox 权限、Required Reason manifest、加密标志；最终核验通过：2.0.0（9）、arm64 + x86_64、strict codesign 有效、sandbox/Bluetooth/user-selected read-write 权限正确，包内包含 UserDefaults CA92.1 manifest，`ITSAppUsesNonExemptEncryption` 为 Boolean false。
 

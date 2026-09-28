@@ -29,7 +29,7 @@ Bluetooth & Device Inspector
 ### Promotional Text
 
 ```text
-See your Mac's accessories more clearly. Inspect available parameters, follow changes with diagnostics, and build dashboards around the details that matter.
+Inspect system-reported accessory parameters, track connection states, run on-demand diagnostics, and organize readings in custom dashboards.
 ```
 
 ### Description
@@ -37,7 +37,7 @@ See your Mac's accessories more clearly. Inspect available parameters, follow ch
 ```text
 A clearer view of your Mac's accessories.
 
-LinkScope Lite brings device details, connection states, and system-reported parameters into one native Mac workspace. Explore what your Mac can see, follow changes over time, and build a dashboard for the details you care about.
+LinkScope Lite brings device details, connection states, and system-reported parameters into one native Mac workspace. Explore what your Mac can see, follow changes over time, and organize system readings in a custom dashboard.
 
 INSPECT THE DETAILS
 Browse supported Bluetooth, input, audio, and game controller devices exposed by macOS. View raw parameters alongside their source, update time, and availability. Distinct states help you tell a missing reading from a permission issue or an unsupported value.
@@ -59,6 +59,8 @@ Availability depends on your Mac, macOS version, connected accessories, and perm
 Enable Saved History to retain observations and dashboards between launches. Without access to saved storage, the app continues in memory-only mode. Exported files can include device names and identifiers; review them before sharing.
 
 Requires macOS 15 or later. No app account is required.
+
+Source code (AGPL-3.0-only): https://github.com/jasonhejiahuan/LinkScope
 ```
 
 ### Keywords
@@ -93,13 +95,13 @@ LinkScope Lite
 ### Subtitle
 
 ```text
-蓝牙配件检查与自定义仪表盘
+探索蓝牙与外设
 ```
 
 ### Promotional Text
 
 ```text
-更清楚地了解 Mac 配件。查看系统提供的参数，按需诊断信号变化，用自定义仪表盘集中呈现你关心的信息。
+查看 Mac 配件的系统参数与连接状态，按需记录诊断数据，并通过自定义仪表盘集中呈现读数、历史变化和数据源状态。
 ```
 
 ### Description
@@ -107,7 +109,7 @@ LinkScope Lite
 ```text
 看清 Mac 配件的每一份可用信息。
 
-LinkScope Lite 将设备信息、连接状态和系统提供的参数汇集到原生 Mac 工作区。查看当前状态，追踪变化，再把关心的数据整理成自己的仪表盘。
+LinkScope Lite 将设备信息、连接状态和系统提供的参数汇集到原生 Mac 工作区。查看当前状态，追踪变化，通过自定义仪表盘集中呈现参数和历史记录。
 
 深入查看配件
 浏览 macOS 能够识别的蓝牙、输入、音频和游戏控制器设备。检查原始参数，以及数据来源、更新时间和可用状态。没有读数、权限不足或系统不支持，都会明确显示。
@@ -129,6 +131,8 @@ LinkScope Lite 将设备信息、连接状态和系统提供的参数汇集到�
 启用“已保存历史”后，可在重新启动应用后继续查看已保存的观察记录和仪表盘。无法访问保存空间时，应用会以内存模式继续运行。导出文件可能包含设备名称和标识符，分享前请先检查内容。
 
 需要 macOS 15 或更高版本，无需注册应用账户。
+
+源代码（AGPL-3.0-only）：https://github.com/jasonhejiahuan/LinkScope
 ```
 
 ### Keywords

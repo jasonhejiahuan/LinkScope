@@ -1,8 +1,10 @@
 # LinkScope Lite 2.0.0 · App Store 发行材料
 
+> 历史发行准备记录：用户于 2026-09-28 确认应用已在 App Store 全球发布。本目录中的待办与验证结果保留原准备阶段的上下文，不代表当前商店状态。后续权限修复记录见 [2.0.1](../2.0.1/README.md)。
+
 本目录面向 Mac App Store 的 **LinkScope Lite 2.0.0（9）**，准备英语和简体中文材料。资料准备不代表已经上传、提交审核或具备 App Store 发行签名。
 
-**工具链阻塞更新：** 用户报告上传因 Xcode 版本被拒；旧 `final.xcarchive` 使用 27A5252f Beta，不能继续作为提交包。当前两套 Xcode 安装也均为 Beta，须安装 Xcode 27 正式版（27A266a）后重新归档。证据与命令见 [Xcode 上传拒绝处理](xcode-submission-blocker.md)。
+**发布方式：** 用户已验证自行在 Xcode GUI 重新 Archive 后，旧归档的 Xcode 版本错误不再出现。后续由用户手动 Archive、验证和提交；助手默认不自动构建发布包。此前“必须安装正式版”的结论已撤回，详见 [归档问题更正与发布约定](xcode-submission-blocker.md)。
 
 | 文件 | 用途 |
 | --- | --- |

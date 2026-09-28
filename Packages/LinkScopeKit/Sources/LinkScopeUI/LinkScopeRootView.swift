@@ -241,7 +241,7 @@ public struct LinkScopeRootView: View {
             PermissionManagementView(
                 model: model,
                 isOnboarding: !permissionOnboardingCompleted,
-                showsCompletionButton: !permissionOnboardingCompleted
+                showsCompletionButton: true
             ) {
                 permissionOnboardingCompleted = true
                 showingPermissions = false
